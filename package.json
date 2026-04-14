@@ -1,0 +1,25 @@
+{
+  "name": "podcast-video-generator",
+  "version": "1.0.0",
+  "description": "Multi-theme podcast chat renderer with video recording",
+  "main": "dist/generate.js",
+  "scripts": {
+    "generate": "ts-node generate.ts",
+    "record": "ts-node record-device.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": ["podcast", "video", "kakaotalk", "chat", "renderer"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0",
+    "@types/jest": "^29.5.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

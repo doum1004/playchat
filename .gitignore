@@ -1,0 +1,7 @@
+node_modules/
+dist/
+_frames/
+output/
+*.mp4
+output*.html
+.env
