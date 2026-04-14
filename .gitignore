@@ -2,6 +2,7 @@ node_modules/
 dist/
 _frames/
 output/
+_audio_cache/
 *.mp4
 output*.html
 .env
