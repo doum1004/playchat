@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PodcastEpisode, flattenDialogues } from "../core/types";
+import { PodcastEpisode, flattenDialogues, DEFAULT_ENGINE_OPTIONS } from "../core/types";
 import { getTheme, listThemes } from "../themes";
 
 const fixture: PodcastEpisode = JSON.parse(
@@ -71,5 +71,39 @@ describe.each(listThemes())("theme: %s", (themeId) => {
     const simpleDialogue = dialogues.find((d) => !d.text.includes('"'));
     expect(simpleDialogue).toBeDefined();
     expect(html).toContain(simpleDialogue!.text);
+  });
+
+  it("uses default pauseMs (3000) when no options provided", () => {
+    expect(html).toContain(
+      `setTimeout(playNext, ${DEFAULT_ENGINE_OPTIONS.pauseMs})`
+    );
+  });
+});
+
+describe("pauseMs option", () => {
+  it("embeds custom pauseMs value in rendered HTML", () => {
+    const customPause = 5000;
+    const theme = getTheme("kakaotalk", fixture, dialogues, {
+      pauseMs: customPause,
+    });
+    const html = theme.render();
+    expect(html).toContain(`setTimeout(playNext, ${customPause})`);
+    expect(html).not.toContain(
+      `setTimeout(playNext, ${DEFAULT_ENGINE_OPTIONS.pauseMs})`
+    );
+  });
+
+  it("works with all registered themes", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues, { pauseMs: 4200 });
+      const html = theme.render();
+      expect(html).toContain("setTimeout(playNext, 4200)");
+    }
+  });
+
+  it("falls back to default when options omitted", () => {
+    const theme = getTheme("kakaotalk", fixture, dialogues);
+    const html = theme.render();
+    expect(html).toContain(`setTimeout(playNext, 3000)`);
   });
 });

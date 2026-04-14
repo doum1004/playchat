@@ -1,8 +1,22 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PodcastEpisode, flattenDialogues } from "./core/types";
+import { PodcastEpisode, flattenDialogues, DEFAULT_ENGINE_OPTIONS } from "./core/types";
 import { resolveOutputDir } from "./core/output";
 import { getTheme, listThemes } from "./themes";
+
+function parseFlag(args: string[], flag: string): string | undefined {
+  const idx = args.indexOf(flag);
+  return idx !== -1 && args[idx + 1] ? args[idx + 1] : undefined;
+}
+
+function stripFlags(args: string[], ...flags: string[]): string[] {
+  const skip = new Set<number>();
+  for (const flag of flags) {
+    const idx = args.indexOf(flag);
+    if (idx !== -1) { skip.add(idx); skip.add(idx + 1); }
+  }
+  return args.filter((_, i) => !skip.has(i));
+}
 
 function main() {
   const args = process.argv.slice(2);
@@ -10,28 +24,26 @@ function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx ts-node generate.ts <input.json> [output.html] [--theme <id>]
+  npx ts-node generate.ts <input.json> [output.html] [--theme <id>] [--pause <ms>]
 
   If output.html is omitted, files go to output/<date-time>-<name>/
 
-Themes: ${listThemes().join(", ")}
+Options:
+  --theme <id>   Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
+  --pause <ms>   No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
 
 Examples:
   npx ts-node generate.ts episode.json
   npx ts-node generate.ts episode.json output.html --theme kakaotalk
-  npx ts-node generate.ts episode.json --theme imessage
+  npx ts-node generate.ts episode.json --theme imessage --pause 5000
 `);
     process.exit(0);
   }
 
   const inputPath = args[0];
-  const themeIdx = args.indexOf("--theme");
-  const themeId =
-    themeIdx !== -1 && args[themeIdx + 1] ? args[themeIdx + 1] : "kakaotalk";
-
-  const positionalArgs = args.filter(
-    (_, i) => i !== themeIdx && i !== themeIdx + 1
-  );
+  const themeId = parseFlag(args, "--theme") || "kakaotalk";
+  const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
+  const positionalArgs = stripFlags(args, "--theme", "--pause");
   const explicitOutput = positionalArgs[1];
 
   if (!fs.existsSync(inputPath)) {
@@ -51,7 +63,7 @@ Examples:
 
   let theme;
   try {
-    theme = getTheme(themeId, episode, dialogues);
+    theme = getTheme(themeId, episode, dialogues, { pauseMs });
   } catch (e: unknown) {
     console.error((e as Error).message);
     process.exit(1);
@@ -76,6 +88,7 @@ Examples:
     `   Viewport:  ${theme.viewport.width}x${theme.viewport.height}`
   );
   console.log(`   Dialogues: ${dialogues.length}`);
+  console.log(`   Pause:     ${pauseMs}ms`);
 }
 
 main();

@@ -1,5 +1,5 @@
 {
-  "name": "podcast-video-generator",
+  "name": "playchat",
   "version": "1.0.0",
   "description": "Multi-theme podcast chat renderer with video recording",
   "main": "dist/generate.js",

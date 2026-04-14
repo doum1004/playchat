@@ -5,3 +5,4 @@ output/
 *.mp4
 output*.html
 .env
+.cursor/

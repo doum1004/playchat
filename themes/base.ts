@@ -1,4 +1,4 @@
-import { PodcastEpisode, FlatDialogue } from "../core/types";
+import { PodcastEpisode, FlatDialogue, EngineOptions, DEFAULT_ENGINE_OPTIONS } from "../core/types";
 
 export interface ThemeConfig {
   width: number;
@@ -18,10 +18,12 @@ export interface ThemeConfig {
 export abstract class BaseTheme {
   protected episode: PodcastEpisode;
   protected dialogues: FlatDialogue[];
+  protected options: EngineOptions;
 
-  constructor(episode: PodcastEpisode, dialogues: FlatDialogue[]) {
+  constructor(episode: PodcastEpisode, dialogues: FlatDialogue[], options?: Partial<EngineOptions>) {
     this.episode = episode;
     this.dialogues = dialogues;
+    this.options = { ...DEFAULT_ENGINE_OPTIONS, ...options };
   }
 
   abstract get id(): string;
@@ -71,13 +73,38 @@ function playNext() {
     currentAudio.onerror = function() { setTimeout(playNext, 2000); };
     currentAudio.play().catch(function() { setTimeout(playNext, 2000); });
   } else {
-    setTimeout(playNext, 2600);
+    setTimeout(playNext, ${this.options.pauseMs});
   }
+}
+
+/**
+ * Scrubber mode: the recorder is the sole clock. It calls
+ * window.__SCRUB__(frameTimeMs) before every screenshot. This function
+ * renders all messages whose showAtMs <= frameTimeMs that haven't been
+ * shown yet. No browser-side timers are used — zero drift.
+ *
+ * window.__TIMELINE__ must be set (via evaluateOnNewDocument) before load.
+ */
+function initScrubberMode(timeline) {
+  var rendered = 0;
+  window.__SCRUB__ = function(nowMs) {
+    while (rendered < timeline.length && timeline[rendered] <= nowMs) {
+      appendMsg(dialogues[rendered]);
+      rendered++;
+    }
+    if (rendered >= timeline.length) {
+      document.body.dataset.done = '1';
+    }
+  };
 }
 
 if (new URLSearchParams(location.search).get('autoplay') === '1') {
   window.addEventListener('load', function() {
-    setTimeout(function() { isPlaying = true; playNext(); }, 800);
+    if (window.__TIMELINE__ && window.__TIMELINE__.length === TOTAL) {
+      initScrubberMode(window.__TIMELINE__);
+    } else {
+      setTimeout(function() { isPlaying = true; playNext(); }, 800);
+    }
   });
 }`;
   }

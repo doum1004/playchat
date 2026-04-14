@@ -40,6 +40,15 @@ export interface PodcastEpisode {
   sections: Section[];
 }
 
+export interface EngineOptions {
+  /** Delay in ms before advancing to next message when no audio (default 3000) */
+  pauseMs: number;
+}
+
+export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
+  pauseMs: 3000,
+};
+
 export interface FlatDialogue {
   speaker: string;
   name: string;
