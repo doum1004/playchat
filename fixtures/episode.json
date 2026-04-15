@@ -68,14 +68,14 @@
         "corner_name": "[실전 영어 상황극]",
         "dialogues": [
           {
-            "id": 5,
+            "id": 4,
             "speaker": "host_1",
             "name": "민수",
             "text": "Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.",
             "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3"
           },
           {
-            "id": 6,
+            "id": 5,
             "speaker": "host_2",
             "name": "Ashley",
             "text": "Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.",
