@@ -1,94 +1,89 @@
 {
-  "episode_title": "톡톡 영어 EP.12 — 여행 영어 필수 표현",
-  "episode_number": 12,
-  "topic": "Travel English Essentials",
-  "subtitle": "공항에서 호텔까지, 여행에 꼭 필요한 영어 표현",
-  "summary": "이번 에피소드에서는 여행할 때 꼭 필요한 영어 표현들을 다뤄봅니다.",
-  "duration_estimate": "8분",
-  "hosts": [
-    {
-      "id": "host_1",
-      "name": "민수",
-      "gender": "male",
-      "role": "main_host",
-      "lang": "ko",
-      "voice_config": {
-        "voice_index": 0,
-        "pitch": 0,
-        "speed": 1.0
-      }
-    },
-    {
-      "id": "host_2",
-      "name": "Ashley",
-      "gender": "female",
-      "role": "co_host",
-      "lang": "en",
-      "voice_config": {
-        "voice_index": 1,
-        "pitch": 0,
-        "speed": 1.0
-      }
-    }
-  ],
-  "sections": [
-    {
-      "section_id": 1,
-      "section_title": "오프닝",
-      "section_type": "opening",
-      "corner_name": "오프닝 🎙️",
-      "dialogues": [
-        {
-          "id": 1,
-          "speaker": "host_1",
-          "name": "민수",
-          "text": "안녕하세요! 톡톡 영어 시간입니다 😊",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0000.mp3"
-        },
-        {
-          "id": 2,
-          "speaker": "host_2",
-          "name": "Ashley",
-          "text": "Hi everyone! Ready for today's episode?",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0001.mp3"
-        },
-        {
-          "id": 3,
-          "speaker": "host_1",
-          "name": "민수",
-          "text": "오늘은 여행 영어 필수 표현을 배워볼 거예요!",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0002.mp3"
+    "episode_title": "Let's Chat: Asking for Help Naturally",
+    "episode_number": 0,
+    "topic": "Asking for help in daily situations",
+    "subtitle": "Easy and natural ways to ask for help",
+    "summary": "민수와 Ashley가 실생활에서 흔히 마주치는 도움 요청 상황을 통해 자연스럽고 자주 쓰는 영어 표현을 배워봅니다.",
+    "duration_estimate": "5 minutes",
+    "hosts": [
+      {
+        "id": "host_1",
+        "name": "민수",
+        "gender": "male",
+        "role": "learner",
+        "lang": "ko",
+        "voice_config": {
+          "voice_index": 1,
+          "pitch": 1,
+          "speed": 0.9
         }
-      ]
-    },
-    {
-      "section_id": 2,
-      "section_title": "공항 표현",
-      "section_type": "lesson",
-      "corner_name": "공항에서 ✈️",
-      "dialogues": [
-        {
-          "id": 4,
-          "speaker": "host_2",
-          "name": "Ashley",
-          "text": "At the airport, you'll hear: \"May I see your passport?\"",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0003.mp3"
-        },
-        {
-          "id": 5,
-          "speaker": "host_1",
-          "name": "민수",
-          "text": "여권 보여달라는 거죠? 쉽지만 긴장되는 순간이에요 ㅎㅎ",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0004.mp3"
-        },
-        {
-          "id": 6,
-          "speaker": "host_2",
-          "name": "Ashley",
-          "text": "Just smile and say \"Here you go!\" — simple and polite 😄",
-          "audio": "c:/Workspace/Personal/podcast_video_generator/fixtures/segment_0005.mp3"
+      },
+      {
+        "id": "host_2",
+        "name": "Ashley",
+        "gender": "female",
+        "role": "teacher",
+        "lang": "en",
+        "voice_config": {
+          "voice_index": 2,
+          "pitch": 0,
+          "speed": 1.1
         }
-      ]
-    }
-  ]
-}
+      }
+    ],
+    "sections": [
+      {
+        "section_id": 1,
+        "section_title": "톡톡 인사말",
+        "section_type": "opening",
+        "corner_name": "[톡톡 인사말]",
+        "dialogues": [
+          {
+            "id": 1,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3"
+          },
+          {
+            "id": 2,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3"
+          },
+          {
+            "id": 3,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 2,
+        "section_title": "실전 영어 상황극",
+        "section_type": "hook",
+        "corner_name": "[실전 영어 상황극]",
+        "dialogues": [
+          {
+            "id": 5,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3"
+          },
+          {
+            "id": 6,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3"
+          }
+        ]
+      }
+    ],
+    "lang": "en",
+    "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5031974702cb4a24/episode.mp3"
+  }
