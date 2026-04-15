@@ -26,8 +26,12 @@ export class KakaoTalkTheme extends BaseTheme {
   flex-shrink: 0;
 }
 .kk-back { color: #f9e000; font-size: 16px; font-weight: 500; }
-.kk-room-name { color: #fff; font-size: 15px; font-weight: 500; flex: 1; }
-.kk-count { color: rgba(255,255,255,0.55); font-size: 13px; }
+.kk-room-name {
+  color: #fff; font-size: 15px; font-weight: 500; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+}
+.kk-count { color: rgba(255,255,255,0.55); font-size: 13px; white-space: nowrap; }
 
 .kk-body {
   background: #b2c7d9;
@@ -54,9 +58,16 @@ export class KakaoTalkTheme extends BaseTheme {
 
 .avatar-col { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
 .avatar {
-  width: 36px; height: 36px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 500;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;        /* ← key fix */
+  text-align: center;
 }
 
 .msg-col { display: flex; flex-direction: column; max-width: 68%; }
