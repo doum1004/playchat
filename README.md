@@ -279,7 +279,7 @@ docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playch
 ### Setup
 
 ```bash
-git clone https://github.com/doum1004/chat-in-video.git
+git clone https://github.com/doum1004/playchat.git
 cd chat-in-video
 npm install
 ```
