@@ -77,6 +77,28 @@ describe("flattenDialogues", () => {
     expect(flattenDialogues(noDialogues)).toEqual([]);
   });
 
+  it("normalizes image URL passthrough", () => {
+    const d = flat.find((f) => f.imageRaw && /^https?:\/\//i.test(f.imageRaw));
+    expect(d).toBeDefined();
+    expect(d!.image).toBe(d!.imageRaw);
+  });
+
+  it("preserves raw image path in imageRaw", () => {
+    const allDialogues = fixture.sections.flatMap((s) => s.dialogues);
+    for (let i = 0; i < flat.length; i++) {
+      expect(flat[i].imageRaw).toBe(allDialogues[i].image ?? "");
+    }
+  });
+
+  it("sets image to empty string for dialogues without image", () => {
+    const withoutImage = flat.filter((f) => !f.imageRaw);
+    expect(withoutImage.length).toBeGreaterThan(0);
+    for (const d of withoutImage) {
+      expect(d.image).toBe("");
+      expect(d.imageRaw).toBe("");
+    }
+  });
+
   it("defaults to corner_name as section even if empty string", () => {
     const emptyCorner: PodcastEpisode = {
       ...fixture,

@@ -60,7 +60,11 @@ function downloadFileTo(url: string, destPath: string, maxRedirects = 5): Promis
     }
     const file = fs.createWriteStream(destPath);
     const client = /^https:/i.test(url) ? https : http;
-    (client as typeof https).get(url, (response) => {
+    (client as typeof https).get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      },
+    }, (response) => {
       const { statusCode, headers } = response;
       if (statusCode && statusCode >= 300 && statusCode < 400 && headers.location) {
         response.resume();
@@ -90,7 +94,11 @@ async function cachedDownload(url: string): Promise<string> {
   const tmp      = `${cached}.${process.pid}.${Date.now()}.tmp`;
   const lockFile = `${cached}.lock`;
 
-  if (fs.existsSync(cached)) return cached;
+  if (fs.existsSync(cached)) {
+    const stat = fs.statSync(cached);
+    if (stat.size > 0) return cached;
+    try { fs.unlinkSync(cached); } catch { /* ignore */ }
+  }
 
   let lockAcquired = false;
   try {
@@ -137,6 +145,28 @@ async function cachedDownload(url: string): Promise<string> {
   }
 
   return cached;
+}
+
+async function resolveRemoteImages(dialogues: FlatDialogue[]): Promise<Map<string, string>> {
+  const urlMap = new Map<string, string>();
+  const uniqueUrls = [
+    ...new Set(
+      dialogues
+        .map((d) => d.imageRaw)
+        .filter((r) => /^https?:\/\//i.test(r))
+    ),
+  ];
+  await Promise.all(
+    uniqueUrls.map(async (url) => {
+      try {
+        const local = await cachedDownload(url);
+        urlMap.set(url, local);
+      } catch (e) {
+        console.warn(`\nWarning: could not download image ${url}: ${(e as Error).message}`);
+      }
+    })
+  );
+  return urlMap;
 }
 
 async function resolveRemoteAudio(dialogues: FlatDialogue[]): Promise<Map<string, string>> {
@@ -665,6 +695,20 @@ Examples:
     }
     // Store the map so we don't re-download later
     precomputedRemoteAudioMap = remoteAudioMap;
+
+    // Pre-download remote images and rewrite d.image to file:/// so Puppeteer
+    // can load them instantly without waiting on network requests at screenshot time.
+    const remoteImageMap = await resolveRemoteImages(dialogues);
+    for (const d of dialogues) {
+      if (!d.imageRaw) continue;
+      if (/^https?:\/\//i.test(d.imageRaw)) {
+        const local = remoteImageMap.get(d.imageRaw);
+        if (local) {
+          const normalized = local.replace(/\\/g, "/");
+          d.image = `file:///${normalized.replace(/^\/+/, "")}`;
+        }
+      }
+    }
   }
 
   let theme;

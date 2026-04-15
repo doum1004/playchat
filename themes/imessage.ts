@@ -79,6 +79,13 @@ export class IMessageTheme extends BaseTheme {
 
 .time-stamp { font-size: 9px; color: #8e8e93; white-space: nowrap; margin-bottom: 2px; }
 
+.bubble-img {
+  max-width: 100%; max-height: 200px; width: auto; display: block;
+  border-radius: 14px; overflow: hidden; object-fit: cover;
+}
+.bubble-img.right { border-radius: 18px 0 18px 18px; }
+.bubble-img.left  { border-radius: 0 18px 18px 18px; }
+
 .im-footer {
   border-top: 0.5px solid #c8c8c8; padding: 8px 12px;
   display: flex; align-items: center; gap: 8px; flex-shrink: 0;
@@ -160,6 +167,7 @@ function appendMsg(d) {
   if (SHOW_AVATAR) html += avatarHTML(d);
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-label' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
         '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +

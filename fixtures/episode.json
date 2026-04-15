@@ -43,7 +43,8 @@
             "speaker": "host_1",
             "name": "민수",
             "text": "여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?",
-            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3"
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3",
+            "image": "https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg"
           },
           {
             "id": 2,

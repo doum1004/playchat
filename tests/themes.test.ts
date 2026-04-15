@@ -51,6 +51,11 @@ describe.each(listThemes())("theme: %s", (themeId) => {
     expect(html).toContain("function appendMsg(d)");
   });
 
+  it("uses quote-safe image onerror handler", () => {
+    expect(html).toContain('onerror="this.remove()"');
+    expect(html).not.toContain("this.style.display=\\'none\\'");
+  });
+
   it("contains lastSection variable", () => {
     expect(html).toContain("let lastSection");
   });

@@ -19,6 +19,7 @@ export interface Dialogue {
   name: string;
   text: string;
   audio: string;
+  image?: string;
 }
 
 export interface Section {
@@ -62,6 +63,10 @@ export interface FlatDialogue {
   section: string;
   /** Duration of the audio clip in seconds (0 if no audio). Populated by CLI before rendering. */
   audioDurationSec: number;
+  /** Normalized image URI (browser-usable). Empty string if no image. */
+  image: string;
+  /** Original image value before normalization (local path, URL, or empty) */
+  imageRaw: string;
 }
 
 /**
@@ -83,6 +88,7 @@ export function flattenDialogues(episode: PodcastEpisode): FlatDialogue[] {
   const result: FlatDialogue[] = [];
   for (const section of episode.sections) {
     for (const d of section.dialogues) {
+      const imageRaw = d.image ?? "";
       result.push({
         speaker: d.speaker,
         name: d.name,
@@ -91,6 +97,8 @@ export function flattenDialogues(episode: PodcastEpisode): FlatDialogue[] {
         audioRaw: d.audio,
         section: section.corner_name,
         audioDurationSec: 0,
+        image: normalizeAudioPath(imageRaw),
+        imageRaw,
       });
     }
   }

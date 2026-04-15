@@ -83,6 +83,14 @@ export class KakaoTalkTheme extends BaseTheme {
 
 .time-stamp { font-size: 10px; color: rgba(0,0,0,0.4); white-space: nowrap; margin-bottom: 2px; }
 
+.bubble-img {
+  max-width: 100%; max-height: 200px; width: auto; display: block;
+  object-fit: cover; overflow: hidden;
+  margin-bottom: 4px;
+}
+.bubble-img.left  { border-radius: 0 12px 12px 12px; }
+.bubble-img.right { border-radius: 12px 0 12px 12px; }
+
 .kk-footer {
   background: #f0f0f0; border-top: 0.5px solid #d0d0d0;
   padding: 8px 12px; display: flex; align-items: center; gap: 8px;
@@ -188,6 +196,7 @@ function appendMsg(d) {
   if (SHOW_AVATAR) html += avatarHTML(d);
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
         '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +
