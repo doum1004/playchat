@@ -46,7 +46,14 @@ export abstract class BaseTheme {
   }
 
   protected get dialoguesJSON(): string {
-    return JSON.stringify(this.dialogues);
+    // Escape characters that can break inline <script> parsing in generated HTML.
+    // This keeps playback reliable even when dialogue text includes tags like </script>.
+    return JSON.stringify(this.dialogues)
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e")
+      .replace(/&/g, "\\u0026")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
   }
 
   /** The host id of the first host in the episode — treated as "me" (right side). */
@@ -65,6 +72,7 @@ const dialogues = ${this.dialoguesJSON};
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = ${JSON.stringify(this.firstSection)};
+const POST_AUDIO_GAP_MS = 400;
 
 function playNext() {
   if (idx >= TOTAL) {
@@ -78,7 +86,7 @@ function playNext() {
 
   if (d.audio) {
     currentAudio = new Audio(d.audio);
-    currentAudio.onended = function() { setTimeout(playNext, 400); };
+    currentAudio.onended = function() { setTimeout(playNext, POST_AUDIO_GAP_MS); };
     currentAudio.onerror = function() { setTimeout(playNext, 2000); };
     currentAudio.play().catch(function() { setTimeout(playNext, 2000); });
   } else {
@@ -102,25 +110,33 @@ function initScrubberMode(timeline) {
   document.head.appendChild(noAnim);
   var rendered = 0;
   window.__SCRUB__ = function(nowMs) {
-    while (rendered < timeline.length && timeline[rendered] <= nowMs) {
+    while (
+      rendered < dialogues.length &&
+      rendered < timeline.length &&
+      timeline[rendered] <= nowMs
+    ) {
       appendMsg(dialogues[rendered]);
       rendered++;
     }
-    if (rendered >= timeline.length) {
+    if (rendered >= dialogues.length || rendered >= timeline.length) {
       document.body.dataset.done = '1';
     }
   };
 }
 
-if (new URLSearchParams(location.search).get('autoplay') === '1') {
-  window.addEventListener('load', function() {
-    if (window.__TIMELINE__ && window.__TIMELINE__.length === TOTAL) {
-      initScrubberMode(window.__TIMELINE__);
-    } else {
-      setTimeout(function() { isPlaying = true; playNext(); }, 800);
-    }
-  });
-}`;
+window.addEventListener('load', function() {
+  if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
+    initScrubberMode(window.__TIMELINE__);
+    return;
+  }
+
+  // Preview mode now auto-starts by default. Users can still opt out via ?autoplay=0.
+  var autoplay = new URLSearchParams(location.search).get('autoplay');
+  if (autoplay === '0') return;
+
+  setTimeout(function() { isPlaying = true; playNext(); }, 800);
+});
+`;
   }
 
   /** Wrap theme-specific style, body, and script into a full HTML document. */

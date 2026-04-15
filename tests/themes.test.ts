@@ -43,6 +43,12 @@ describe.each(listThemes())("theme: %s", (themeId) => {
     expect(html).toMatch(/^<!DOCTYPE html>/);
   });
 
+  it("contains syntactically valid inline script", () => {
+    const match = html.match(/<script>\s*([\s\S]*?)\s*<\/script>/);
+    expect(match).toBeTruthy();
+    expect(() => new Function(match![1])).not.toThrow();
+  });
+
   it("contains id='chat-body' element", () => {
     expect(html).toContain('id="chat-body"');
   });
@@ -66,6 +72,19 @@ describe.each(listThemes())("theme: %s", (themeId) => {
 
   it("contains autoplay listener", () => {
     expect(html).toContain("autoplay");
+  });
+
+  it("auto-starts preview playback on load", () => {
+    expect(html).toContain("window.addEventListener('load'");
+    expect(html).toContain("setTimeout(function() { isPlaying = true; playNext(); }, 800);");
+  });
+
+  it("allows disabling preview autoplay with autoplay=0", () => {
+    expect(html).toContain("if (autoplay === '0') return;");
+  });
+
+  it("initializes scrubber whenever timeline array exists", () => {
+    expect(html).toContain("Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0");
   });
 
   it("contains episode title", () => {
@@ -213,6 +232,33 @@ describe("host avatar images", () => {
       const theme = getTheme(themeId, relativeImageEpisode, relativeImageDialogues);
       const html = theme.render();
       expect(html).toContain(expected);
+    }
+  });
+});
+
+describe("safe inline script embedding", () => {
+  it("escapes dangerous HTML/script sequences in dialogue text", () => {
+    const scriptyEpisode: PodcastEpisode = {
+      ...fixture,
+      sections: [
+        {
+          ...fixture.sections[0],
+          dialogues: [
+            {
+              ...fixture.sections[0].dialogues[0],
+              text: `before </script><script>alert("x")</script> after`,
+            },
+          ],
+        },
+      ],
+    };
+    const scriptyDialogues = flattenDialogues(scriptyEpisode);
+
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, scriptyEpisode, scriptyDialogues);
+      const html = theme.render();
+      expect(html).toContain("\\u003c/script\\u003e\\u003cscript\\u003e");
+      expect(html).toContain("function playNext()");
     }
   });
 });
