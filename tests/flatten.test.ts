@@ -144,6 +144,11 @@ describe("normalizeAudioPath", () => {
     expect(normalizeAudioPath(url)).toBe(url);
   });
 
+  it("passes through file URIs unchanged", () => {
+    const uri = "file:///C:/fixtures/host_1.png";
+    expect(normalizeAudioPath(uri)).toBe(uri);
+  });
+
   it("converts local path to file:/// URI", () => {
     const result = normalizeAudioPath("fixtures/segment_0000.mp3");
     expect(result).toMatch(/^file:\/\/\//);
@@ -163,5 +168,42 @@ describe("normalizeAudioPath", () => {
     const result = normalizeAudioPath(abs);
     expect(result).toMatch(/^file:\/\/\//);
     expect(result).toContain("segment_0000.mp3");
+  });
+
+  it("resolves relative paths against provided baseDir", () => {
+    const baseDir = path.resolve("input");
+    const result = normalizeAudioPath("host_1.png", baseDir);
+    const expected = `file:///${path.resolve(baseDir, "host_1.png").replace(/\\/g, "/").replace(/^\/+/, "")}`;
+    expect(result).toBe(expected);
+  });
+});
+
+describe("flattenDialogues baseDir", () => {
+  it("resolves audio and image relative to input JSON directory", () => {
+    const episode: PodcastEpisode = {
+      ...fixture,
+      sections: [
+        {
+          section_id: 1,
+          section_title: "BaseDir",
+          section_type: "test",
+          corner_name: "base",
+          dialogues: [
+            {
+              id: 1,
+              speaker: "host_1",
+              name: "민수",
+              text: "hello",
+              audio: "segment_0000.mp3",
+              image: "host_1.png",
+            },
+          ],
+        },
+      ],
+    };
+    const baseDir = path.resolve("input", "lingora");
+    const result = flattenDialogues(episode, baseDir);
+    expect(result[0].audio).toContain(path.resolve(baseDir, "segment_0000.mp3").replace(/\\/g, "/"));
+    expect(result[0].image).toContain(path.resolve(baseDir, "host_1.png").replace(/\\/g, "/"));
   });
 });

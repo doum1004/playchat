@@ -7,6 +7,7 @@ export interface VoiceConfig {
 export interface Host {
   id: string;
   name: string;
+  image?: string;
   gender: string;
   role: string;
   lang: string;
@@ -75,16 +76,18 @@ export interface FlatDialogue {
  *  - http(s) URL  -> passthrough
  *  - local path   -> file:/// URI with resolved absolute path
  */
-export function normalizeAudioPath(audioPath: string): string {
+export function normalizeAudioPath(audioPath: string, baseDir?: string): string {
   if (!audioPath) return "";
   if (/^https?:\/\//i.test(audioPath)) return audioPath;
+  if (/^file:\/\//i.test(audioPath)) return audioPath;
 
-  const resolved = require("path").resolve(audioPath);
+  const path = require("path") as typeof import("path");
+  const resolved = baseDir ? path.resolve(baseDir, audioPath) : path.resolve(audioPath);
   const normalized = resolved.replace(/\\/g, "/");
   return `file:///${normalized.replace(/^\/+/, "")}`;
 }
 
-export function flattenDialogues(episode: PodcastEpisode): FlatDialogue[] {
+export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): FlatDialogue[] {
   const result: FlatDialogue[] = [];
   for (const section of episode.sections) {
     for (const d of section.dialogues) {
@@ -93,11 +96,11 @@ export function flattenDialogues(episode: PodcastEpisode): FlatDialogue[] {
         speaker: d.speaker,
         name: d.name,
         text: d.text,
-        audio: normalizeAudioPath(d.audio),
+        audio: normalizeAudioPath(d.audio, baseDir),
         audioRaw: d.audio,
         section: section.corner_name,
         audioDurationSec: 0,
-        image: normalizeAudioPath(imageRaw),
+        image: normalizeAudioPath(imageRaw, baseDir),
         imageRaw,
       });
     }

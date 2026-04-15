@@ -7,8 +7,9 @@ import * as https from "https";
 import * as http from "http";
 import * as crypto from "crypto";
 import * as os from "os";
-import { PodcastEpisode, FlatDialogue, flattenDialogues, DEFAULT_ENGINE_OPTIONS } from "./core/types";
+import { PodcastEpisode, FlatDialogue, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OPTIONS } from "./core/types";
 import { resolveOutputDir } from "./core/output";
+import { collectRemoteImageUrls, applyCachedImageUris } from "./core/image-cache";
 import { getTheme, listThemes } from "./themes";
 
 const FPS = 15;
@@ -147,15 +148,12 @@ async function cachedDownload(url: string): Promise<string> {
   return cached;
 }
 
-async function resolveRemoteImages(dialogues: FlatDialogue[]): Promise<Map<string, string>> {
+async function resolveRemoteImages(
+  dialogues: FlatDialogue[],
+  hosts: PodcastEpisode["hosts"] = []
+): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
-  const uniqueUrls = [
-    ...new Set(
-      dialogues
-        .map((d) => d.imageRaw)
-        .filter((r) => /^https?:\/\//i.test(r))
-    ),
-  ];
+  const uniqueUrls = collectRemoteImageUrls(dialogues, hosts);
   await Promise.all(
     uniqueUrls.map(async (url) => {
       try {
@@ -653,6 +651,8 @@ Examples:
   }
 
   const inputPath = args[0];
+  const inputAbsPath = path.resolve(inputPath);
+  const inputDir = path.dirname(inputAbsPath);
   const themeId = parseFlag(args, "--theme") || "kakaotalk";
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
   const showAvatar = !args.includes("--no-avatar");
@@ -674,7 +674,14 @@ Examples:
     process.exit(1);
   }
 
-  const dialogues = flattenDialogues(episode);
+  const dialogues = flattenDialogues(episode, inputDir);
+
+  // Normalize host avatar image paths relative to the input JSON directory.
+  // This allows values like "host_1.png" next to the episode file.
+  for (const host of episode.hosts) {
+    if (!host.image) continue;
+    host.image = normalizeAudioPath(host.image, inputDir);
+  }
 
   // Pre-compute audio durations and stamp them on dialogues so themes can
   // display realistic timestamps (e.g. KakaoTalk's virtual clock).
@@ -698,17 +705,8 @@ Examples:
 
     // Pre-download remote images and rewrite d.image to file:/// so Puppeteer
     // can load them instantly without waiting on network requests at screenshot time.
-    const remoteImageMap = await resolveRemoteImages(dialogues);
-    for (const d of dialogues) {
-      if (!d.imageRaw) continue;
-      if (/^https?:\/\//i.test(d.imageRaw)) {
-        const local = remoteImageMap.get(d.imageRaw);
-        if (local) {
-          const normalized = local.replace(/\\/g, "/");
-          d.image = `file:///${normalized.replace(/^\/+/, "")}`;
-        }
-      }
-    }
+    const remoteImageMap = await resolveRemoteImages(dialogues, episode.hosts);
+    applyCachedImageUris(dialogues, episode.hosts, remoteImageMap);
   }
 
   let theme;
@@ -729,7 +727,7 @@ Examples:
 
   if (!doRecord && !doRecordFull) {
     writeManifest(outDir, {
-      input: path.resolve(inputPath),
+      input: inputAbsPath,
       theme: themeId,
       pauseMs,
       showAvatar,
@@ -821,7 +819,7 @@ Examples:
     }
 
     writeManifest(outDir, {
-      input: path.resolve(inputPath),
+      input: inputAbsPath,
       theme: themeId,
       pauseMs,
       showAvatar,

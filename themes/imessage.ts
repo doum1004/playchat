@@ -1,3 +1,4 @@
+import { normalizeAudioPath } from "../core/types";
 import { BaseTheme, ThemeConfig } from "./base";
 
 export class IMessageTheme extends BaseTheme {
@@ -42,7 +43,18 @@ export class IMessageTheme extends BaseTheme {
 .avatar {
   width: 30px; height: 30px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
   font-size: 12px; font-weight: 600;
+}
+.avatar-letter { position: relative; z-index: 1; }
+.avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
 }
 
 .msg-col { display: flex; flex-direction: column; max-width: 70%; }
@@ -127,12 +139,13 @@ export class IMessageTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
     const textColors = ["#fff", "#555", "#fff", "#fff", "#fff"];
-    const map: Record<string, { letter: string; bg: string; fg: string }> = {};
+    const map: Record<string, { letter: string; bg: string; fg: string; image: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
         letter: h.name.charAt(0),
         bg: colors[i % colors.length],
         fg: textColors[i % textColors.length],
+        image: h.image ? normalizeAudioPath(h.image) : "",
       };
     });
     return JSON.stringify(map);
@@ -146,8 +159,9 @@ const SHOW_AVATAR = ${this.showAvatar};
 const HOST_MAP = ${this.hostMapJSON};
 
 function avatarHTML(d) {
-  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff' };
-  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + info.letter + '</div></div>';
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
+  var image = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
+  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '"><span class="avatar-letter">' + info.letter + '</span>' + image + '</div></div>';
 }
 
 function appendMsg(d) {

@@ -1,3 +1,4 @@
+import { normalizeAudioPath } from "../core/types";
 import { BaseTheme, ThemeConfig } from "./base";
 
 export class KakaoTalkTheme extends BaseTheme {
@@ -64,10 +65,22 @@ export class KakaoTalkTheme extends BaseTheme {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
   font-size: 13px;
   font-weight: 500;
   line-height: 1;        /* ← key fix */
   text-align: center;
+}
+.avatar-letter { position: relative; z-index: 1; }
+.avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
 }
 
 .msg-col { display: flex; flex-direction: column; max-width: 68%; }
@@ -148,12 +161,13 @@ export class KakaoTalkTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#f9e000", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
     const textColors = ["#3c2e00", "#fff", "#fff", "#fff", "#fff"];
-    const map: Record<string, { letter: string; bg: string; fg: string }> = {};
+    const map: Record<string, { letter: string; bg: string; fg: string; image: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
         letter: h.name.charAt(0),
         bg: colors[i % colors.length],
         fg: textColors[i % textColors.length],
+        image: h.image ? normalizeAudioPath(h.image) : "",
       };
     });
     return JSON.stringify(map);
@@ -185,8 +199,9 @@ function getTime(audioDurationSec) {
 }
 
 function avatarHTML(d) {
-  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff' };
-  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + info.letter + '</div></div>';
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
+  var image = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
+  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '"><span class="avatar-letter">' + info.letter + '</span>' + image + '</div></div>';
 }
 
 function appendMsg(d) {

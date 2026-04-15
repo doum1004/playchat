@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PodcastEpisode, flattenDialogues, DEFAULT_ENGINE_OPTIONS } from "../core/types";
+import { PodcastEpisode, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OPTIONS } from "../core/types";
 import { getTheme, listThemes } from "../themes";
 
 const fixture: PodcastEpisode = JSON.parse(
@@ -162,6 +162,57 @@ describe("showAvatar option", () => {
       const html = theme.render();
       expect(html).toContain("function appendMsg(d)");
       expect(html).toContain("function playNext()");
+    }
+  });
+});
+
+describe("host avatar images", () => {
+  it("embeds optional host image values in theme host maps", () => {
+    expect(fixture.hosts[0].image).toBeDefined();
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues);
+      const html = theme.render();
+      expect(html).toContain(fixture.hosts[0].image!);
+    }
+  });
+
+  it("renders avatar image element and initials fallback markup", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues);
+      const html = theme.render();
+      expect(html).toContain("avatar-image");
+      expect(html).toContain("avatar-letter");
+      expect(html).toContain('onerror="this.remove()"');
+    }
+  });
+
+  it("supports hosts without image by serializing empty image value", () => {
+    const noImageEpisode: PodcastEpisode = {
+      ...fixture,
+      hosts: fixture.hosts.map((h) => ({ ...h, image: undefined })),
+    };
+    const noImageDialogues = flattenDialogues(noImageEpisode);
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, noImageEpisode, noImageDialogues);
+      const html = theme.render();
+      expect(html).toContain('"image":""');
+    }
+  });
+
+  it("normalizes relative host image paths to file URIs", () => {
+    const relativeImageEpisode: PodcastEpisode = {
+      ...fixture,
+      hosts: fixture.hosts.map((h, i) =>
+        i === 0 ? { ...h, image: "host_1.png" } : h
+      ),
+    };
+    const relativeImageDialogues = flattenDialogues(relativeImageEpisode);
+    const expected = normalizeAudioPath("host_1.png");
+
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, relativeImageEpisode, relativeImageDialogues);
+      const html = theme.render();
+      expect(html).toContain(expected);
     }
   });
 });

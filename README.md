@@ -119,6 +119,7 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
     {
       "id": "host_1",
       "name": "Minsu",
+      "image": "https://cdn.example.com/avatar_minsu.png",
       "gender": "male",
       "role": "main_host",
       "lang": "ko",
@@ -144,6 +145,10 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
   ]
 }
 ```
+
+`hosts[i].image` is optional. When present, the value is used as the avatar
+image in chat themes; when omitted or if loading fails, the theme falls back to
+the host's initial letter.
 
 ### Audio paths
 
