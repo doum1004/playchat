@@ -106,7 +106,7 @@ export class KakaoTalkTheme extends BaseTheme {
 <div class="device">
   <div class="kk-header">
     <span class="kk-back">&#8249;</span>
-    <span class="kk-room-name">${ep.name ? ep.name + ' ' : ''}EP.${ep.episode_number}</span>
+    <span class="kk-room-name">${ep.episode_title ? ep.episode_title : ep.name ? ep.name + ' ' + 'EP.' + ep.episode_number : ''}</span>
     <span class="kk-count">${this.hostCount}</span>
   </div>
   <div class="kk-body" id="chat-body">
