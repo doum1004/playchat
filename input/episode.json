@@ -1,0 +1,303 @@
+{
+    "episode_title": "Mastering 'How Come?' – 자연스러운 의문문 표현",
+    "episode_number": 1,
+    "topic": "Korean and American hosts exploring natural daily English expressions",
+    "subtitle": "Using 'How Come?' for casual questions",
+    "summary": "In this episode, 민수 and Ashley dive into the casual question phrase 'How come?' to help learners ask 'Why?' in a more natural and friendly way.",
+    "duration_estimate": "5 minutes",
+    "hosts": [
+      {
+        "id": "host_1",
+        "name": "민수",
+        "gender": "male",
+        "role": "learner",
+        "lang": "ko",
+        "voice_config": {
+          "voice_index": 1,
+          "pitch": 1,
+          "speed": 0.9
+        }
+      },
+      {
+        "id": "host_2",
+        "name": "Ashley",
+        "gender": "female",
+        "role": "teacher",
+        "lang": "en",
+        "voice_config": {
+          "voice_index": 2,
+          "pitch": 0,
+          "speed": 1.1
+        }
+      }
+    ],
+    "sections": [
+      {
+        "section_id": 1,
+        "section_title": "톡톡 인사말",
+        "section_type": "opening",
+        "corner_name": "[톡톡 인사말]",
+        "dialogues": [
+          {
+            "id": 1,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/0647e5f5b1044f4b/segment_0000.mp3"
+          },
+          {
+            "id": 2,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Hi everyone! Today's expression is 'How come?' It's a great way to ask 'Why?' in a casual, friendly way.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/86abead5a3d5407a/segment_0001.mp3"
+          },
+          {
+            "id": 3,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "어, 이거 맞나요? 'How come?'이 그냥 'Why?'랑 똑같이 써도 되는 거죠?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/eac1ebad8d984c65/segment_0002.mp3"
+          },
+          {
+            "id": 4,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Great question! We'll see exactly when and how to use it today. Let’s get started!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/bbb38436f578459a/segment_0003.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 2,
+        "section_title": "실전 영어 상황극",
+        "section_type": "hook",
+        "corner_name": "[실전 영어 상황극]",
+        "dialogues": [
+          {
+            "id": 5,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ashley, why did you cancel our lunch yesterday?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/7719937e0f874f23/segment_0004.mp3"
+          },
+          {
+            "id": 6,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "How come you want to know? Are you hungry?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/837a4dd2f1ee4267/segment_0005.mp3"
+          },
+          {
+            "id": 7,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Haha, maybe a little. But seriously, how come you canceled? I was really looking forward to it.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/926b61914dc2491c/segment_0006.mp3"
+          },
+          {
+            "id": 8,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Well, I wasn’t feeling well. How come you didn’t answer my message?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ef5e7e07a5524ce3/segment_0007.mp3"
+          },
+          {
+            "id": 9,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Oh, I missed it! Sorry about that.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/82d691854a034e23/segment_0008.mp3"
+          },
+          {
+            "id": 10,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "See? 'How come' works perfectly to ask about reasons in a casual way.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ef61da72818346c0/segment_0009.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 3,
+        "section_title": "영어 표현 깊이 파기",
+        "section_type": "concept",
+        "corner_name": "[영어 표현 깊이 파기]",
+        "dialogues": [
+          {
+            "id": 11,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "'How come?' literally means 'Why?', but it’s less formal and more conversational.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/052b54edcd74439e/segment_0010.mp3"
+          },
+          {
+            "id": 12,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "So, can I say ‘How come you didn’t come?’ instead of ‘Why didn’t you come?’",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/e282715914114593/segment_0011.mp3"
+          },
+          {
+            "id": 13,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Exactly! Also, 'How come?' is followed by a normal subject and verb order, not the question word order.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/bf0fe178571345f2/segment_0012.mp3"
+          },
+          {
+            "id": 14,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ah, so I say ‘How come you are late?’ not ‘How come are you late?’ Got it!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/7f828977c7ad4855/segment_0013.mp3"
+          },
+          {
+            "id": 15,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "You got it! That’s a common mistake people make when learning 'How come?'.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/e772220c1e9642e4/segment_0014.mp3"
+          },
+          {
+            "id": 16,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "좀 더 쉽게 설명해 주세요! So 'How come' + subject + verb, no inversion?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/35af30f2ca1d42c8/segment_0015.mp3"
+          },
+          {
+            "id": 17,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Exactly! Unlike 'Why', which uses inversion like 'Why did you go?', 'How come' follows the usual order: 'How come you went?'",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/15dc355a9527429c/segment_0016.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 4,
+        "section_title": "자주 하는 실수 꼭 잡기",
+        "section_type": "common_mistakes",
+        "corner_name": "[자주 하는 실수 꼭 잡기]",
+        "dialogues": [
+          {
+            "id": 18,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ashley, I sometimes say 'How come did you...' Is that wrong?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/6c75c317c31d4bc1/segment_0017.mp3"
+          },
+          {
+            "id": 19,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "That’s a common mistake! Remember, no 'did' after 'How come'. Just say, 'How come you did...'",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/a7c547e0a3af42ef/segment_0018.mp3"
+          },
+          {
+            "id": 20,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ah, so it’s like normal sentence order, not a question form. 하하, 또 실수했네요!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/e7439c3d8c764ba7/segment_0019.mp3"
+          },
+          {
+            "id": 21,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Don’t worry, let’s try again! Practice makes perfect!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4e8781722cb143ad/segment_0020.mp3"
+          },
+          {
+            "id": 22,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Thanks, Ashley! I’m going to remember: 'How come you...?'",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ab32c41735d74930/segment_0021.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 5,
+        "section_title": "원어민 팁과 문화 노트",
+        "section_type": "native_tips",
+        "corner_name": "[원어민 팁과 문화 노트]",
+        "dialogues": [
+          {
+            "id": 23,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "'How come?' is super common in American English, especially in casual talks with friends and family.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/f575a0fe37714313/segment_0022.mp3"
+          },
+          {
+            "id": 24,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "So, if I want to sound more relaxed, I should use 'How come?' instead of 'Why?' Got it!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/26e8cfc8eab94294/segment_0023.mp3"
+          },
+          {
+            "id": 25,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Exactly. Also, in some cases, people might say 'How come?' with a rising tone, almost like you're surprised or curious.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/294296c8b2614a95/segment_0024.mp3"
+          },
+          {
+            "id": 26,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Oh, I noticed that sometimes. It sounds more friendly than just 'Why?'.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/1a9279f94083451a/segment_0025.mp3"
+          },
+          {
+            "id": 27,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "You got it! Using the right tone makes your English sound more natural and warm.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c2c7cbb1b5964a4f/segment_0026.mp3"
+          }
+        ]
+      },
+      {
+        "section_id": 6,
+        "section_title": "톡톡 복습 타임",
+        "section_type": "review",
+        "corner_name": "[톡톡 복습 타임]",
+        "dialogues": [
+          {
+            "id": 28,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "오늘 배운 표현 다시 말해 볼게요. 'How come'은 'Why'랑 비슷하지만, 질문할 때 동사의 순서가 일반 문장처럼 돼요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/0ac148a0cc2a4967/segment_0027.mp3"
+          },
+          {
+            "id": 29,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Yes! So, say 'How come you’re late?' not 'How come are you late?'. 민수, you got it!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/158eaf66dea14a34/segment_0028.mp3"
+          },
+          {
+            "id": 30,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "하하, 오늘도 많이 배웠어요! 불안해 하지 말고, 자주 써 볼게요. 여러분도 'How come?' 꼭 기억하세요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5a37999121c6475a/segment_0029.mp3"
+          },
+          {
+            "id": 31,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Great question! 오늘 배운 표현들 잘 기억하시고, 다음 톡톡 영어에서 만나요! 안녕~",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/837de901f27b47fe/segment_0030.mp3"
+          }
+        ]
+      }
+    ],
+    "lang": "en",
+    "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/407f582cf1514dd8/episode.mp3"
+  }

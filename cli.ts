@@ -1,10 +1,11 @@
 import puppeteer from "puppeteer";
-import { execSync, execFileSync } from "child_process";
+import { execSync, execFileSync, execFile, spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as https from "https";
 import * as http from "http";
 import * as crypto from "crypto";
+import * as os from "os";
 import { PodcastEpisode, FlatDialogue, flattenDialogues, DEFAULT_ENGINE_OPTIONS } from "./core/types";
 import { resolveOutputDir } from "./core/output";
 import { getTheme, listThemes } from "./themes";
@@ -161,6 +162,21 @@ function getAudioDurationSec(filePath: string): number {
   }
 }
 
+function getAudioDurationSecAsync(filePath: string): Promise<number> {
+  return new Promise((resolve) => {
+    execFile("ffprobe", [
+      "-v", "error",
+      "-show_entries", "format=duration",
+      "-of", "default=noprint_wrappers=1:nokey=1",
+      filePath,
+    ], (err, stdout) => {
+      if (err) return resolve(0);
+      const dur = parseFloat(stdout.trim());
+      resolve(isNaN(dur) ? 0 : dur);
+    });
+  });
+}
+
 // ── Timeline ──────────────────────────────────────────────────────────────────
 
 interface DialogueTiming {
@@ -169,115 +185,194 @@ interface DialogueTiming {
   localAudioPath: string | null;
 }
 
-function buildTimeline(
+async function buildTimeline(
   dialogues: FlatDialogue[],
   pauseMs: number,
   remoteAudioMap: Map<string, string> = new Map()
-): DialogueTiming[] {
+): Promise<DialogueTiming[]> {
   const POST_AUDIO_GAP_MS = 400;
+
+  // Resolve local paths for all dialogues
+  const localPaths: (string | null)[] = dialogues.map((d) => {
+    const raw = d.audioRaw || d.audio;
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
+    const local = toLocalPath(raw);
+    return local && fs.existsSync(local) ? local : null;
+  });
+
+  // Fetch all durations in parallel
+  const durations = await Promise.all(
+    localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
+  );
+
+  // Build sequential cursor
   const timings: DialogueTiming[] = [];
   let cursorMs = 0;
-
-  for (const d of dialogues) {
-    const raw = d.audioRaw || d.audio;
-    let localPath: string | null = null;
-
-    if (raw && /^https?:\/\//i.test(raw)) {
-      localPath = remoteAudioMap.get(raw) ?? null;
-    } else {
-      localPath = toLocalPath(raw);
-      if (localPath && !fs.existsSync(localPath)) localPath = null;
-    }
-
-    let durationMs = 0;
-    if (localPath) {
-      durationMs = Math.round(getAudioDurationSec(localPath) * 1000);
-    }
-
-    timings.push({ showAtMs: cursorMs, audioDurationMs: durationMs, localAudioPath: localPath });
-
-    if (durationMs > 0) {
-      cursorMs += durationMs + POST_AUDIO_GAP_MS;
-    } else {
-      cursorMs += pauseMs;
-    }
+  for (let i = 0; i < dialogues.length; i++) {
+    const durationMs = Math.round(durations[i] * 1000);
+    timings.push({ showAtMs: cursorMs, audioDurationMs: durationMs, localAudioPath: localPaths[i] });
+    cursorMs += durationMs > 0 ? durationMs + POST_AUDIO_GAP_MS : pauseMs;
   }
 
   return timings;
 }
 
-// ── Puppeteer recorder ────────────────────────────────────────────────────────
+// ── Puppeteer recorder + encoder (parallel workers) ───────────────────────────
 
-async function recordFrames(
+const WORKER_COUNT = Math.min(Math.max(os.cpus().length, 2), 8);
+
+/**
+ * One worker: opens its own Puppeteer page, scrubs through a frame range, and
+ * pipes JPEG frames directly into an ffmpeg subprocess that writes a segment mp4.
+ * Returns the path of the produced segment.
+ */
+async function recordSegment(
+  browser: Awaited<ReturnType<typeof puppeteer.launch>>,
   htmlPath: string,
   width: number,
   height: number,
-  timings: DialogueTiming[]
-): Promise<string> {
-  const framesDir = path.resolve("_frames");
-  if (fs.existsSync(framesDir)) fs.rmSync(framesDir, { recursive: true });
-  fs.mkdirSync(framesDir);
+  timelineMs: number[],
+  startFrame: number,
+  endFrame: number,  // exclusive
+  segPath: string,
+  onProgress: (framesCompleted: number) => void
+): Promise<void> {
+  const outW = width * SCALE;
+  const outH = height * SCALE;
 
+  const ffmpegProc = spawn("ffmpeg", [
+    "-y",
+    "-f", "mjpeg",
+    "-framerate", String(FPS),
+    "-i", "pipe:0",
+    "-vf", `scale=${outW}:${outH}:flags=lanczos`,
+    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
+    segPath,
+  ], { stdio: ["pipe", "pipe", "pipe"] });
+
+  const ffmpegDone = new Promise<void>((resolve, reject) => {
+    ffmpegProc.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`ffmpeg segment exited with code ${code} for ${segPath}`));
+    });
+    ffmpegProc.on("error", reject);
+  });
+
+  const page = await browser.newPage();
+  await page.setViewport({ width, height, deviceScaleFactor: SCALE });
+  await page.evaluateOnNewDocument(
+    `(function(tl) { window.__TIMELINE__ = tl; })(${JSON.stringify(timelineMs)})`
+  );
+
+  const fileUrl = `file://${path.resolve(htmlPath).replace(/\\/g, "/")}?autoplay=1`;
+  await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
+  await new Promise((r) => setTimeout(r, 300));
+
+  // Fast-forward DOM state to the frame just before our range
+  if (startFrame > 0) {
+    const catchUpMs = Math.round(((startFrame - 1) / FPS) * 1000);
+    await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${catchUpMs})`);
+  }
+
+  const clip = { x: 0, y: 0, width, height };
+
+  for (let frame = startFrame; frame < endFrame; frame++) {
+    const frameTimeMs = Math.round((frame / FPS) * 1000);
+    await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${frameTimeMs})`);
+
+    const buf = await page.screenshot({ type: "jpeg", quality: 92, clip, encoding: "binary" }) as Buffer;
+    await new Promise<void>((resolve, reject) => {
+      if (!ffmpegProc.stdin.write(buf)) {
+        ffmpegProc.stdin.once("drain", resolve);
+      } else {
+        resolve();
+      }
+      ffmpegProc.stdin.once("error", reject);
+    });
+
+    onProgress(1);
+  }
+
+  await page.close();
+  ffmpegProc.stdin.end();
+  await ffmpegDone;
+}
+
+async function recordAndEncode(
+  htmlPath: string,
+  width: number,
+  height: number,
+  timings: DialogueTiming[],
+  silentMp4: string
+): Promise<void> {
   const lastTiming = timings[timings.length - 1];
   const totalMs = lastTiming.showAtMs +
     (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
   const totalFrames = Math.min(Math.ceil((totalMs / 1000) * FPS), FPS * MAX_DURATION_SEC);
+  const timelineMs = timings.map((t) => t.showAtMs);
+
+  process.stdout.write(
+    `Recording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ...`
+  );
 
   const browser = await puppeteer.launch({
     headless: "new" as never,
     args: ["--no-sandbox", "--disable-web-security"],
   });
 
-  const page = await browser.newPage();
-  await page.setViewport({ width, height, deviceScaleFactor: SCALE });
+  const tmpDir = path.resolve("_seg_tmp");
+  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
+  fs.mkdirSync(tmpDir);
 
-  const timelineMs = timings.map((t) => t.showAtMs);
-  await page.evaluateOnNewDocument(
-    `(function(tl) { window.__TIMELINE__ = tl; })(${JSON.stringify(timelineMs)})`
-  );
+  // Divide frames evenly across workers
+  const chunkSize = Math.ceil(totalFrames / WORKER_COUNT);
+  const chunks = Array.from({ length: WORKER_COUNT }, (_, i) => ({
+    start: i * chunkSize,
+    end: Math.min((i + 1) * chunkSize, totalFrames),
+    seg: path.join(tmpDir, `seg_${String(i).padStart(3, "0")}.mp4`),
+  })).filter((c) => c.start < c.end);
 
-  const fileUrl = `file://${path.resolve(htmlPath)}?autoplay=1`;
-  await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
-  await new Promise((r) => setTimeout(r, 500));
+  let completedFrames = 0;
+  const updateProgress = (n: number) => {
+    completedFrames += n;
+    const pct = Math.round((completedFrames / totalFrames) * 100);
+    process.stdout.write(
+      `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ... ${pct}%`
+    );
+  };
 
-  process.stdout.write(`Recording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s) ...`);
-
-  for (let frame = 0; frame < totalFrames; frame++) {
-    const frameTimeMs = Math.round((frame / FPS) * 1000);
-    await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${frameTimeMs})`);
-
-    const padded = String(frame).padStart(6, "0");
-    await page.screenshot({
-      path: path.join(framesDir, `f_${padded}.png`),
-      clip: { x: 0, y: 0, width, height },
-    });
-
-    if (frame % (FPS * 5) === 0) {
-      const pct = Math.round((frame / totalFrames) * 100);
-      process.stdout.write(`\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s) ... ${pct}%`);
-    }
+  try {
+    await Promise.all(
+      chunks.map((c) =>
+        recordSegment(browser, htmlPath, width, height, timelineMs, c.start, c.end, c.seg, updateProgress)
+      )
+    );
+  } finally {
+    await browser.close();
   }
 
-  process.stdout.write(`\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s) ... done\n`);
-  await browser.close();
-
-  return framesDir;
-}
-
-// ── Video encoding ────────────────────────────────────────────────────────────
-
-function encodeVideo(framesDir: string, silentMp4: string, width: number, height: number) {
-  const outW = width * SCALE;
-  const outH = height * SCALE;
-
-  execSync(
-    `ffmpeg -y -framerate ${FPS} ` +
-      `-i "${path.join(framesDir, "f_%06d.png")}" ` +
-      `-vf "scale=${outW}:${outH}:flags=lanczos" ` +
-      `-c:v libx264 -pix_fmt yuv420p -preset medium -crf 20 ` +
-      `"${silentMp4}"`,
-    { stdio: "pipe" }
+  process.stdout.write(
+    `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ... done\n`
   );
+
+  // Concatenate segments into the final silent mp4
+  if (chunks.length === 1) {
+    fs.renameSync(chunks[0].seg, silentMp4);
+  } else {
+    process.stdout.write("Concatenating segments ...");
+    const concatList = path.join(tmpDir, "concat.txt");
+    fs.writeFileSync(concatList, chunks.map((c) => `file '${c.seg.replace(/\\/g, "/")}'`).join("\n"), "utf-8");
+    execFileSync("ffmpeg", [
+      "-y", "-f", "concat", "-safe", "0",
+      "-i", concatList,
+      "-c", "copy",
+      silentMp4,
+    ], { stdio: "pipe" });
+    process.stdout.write(" done\n");
+  }
+
+  fs.rmSync(tmpDir, { recursive: true });
 }
 
 // ── Audio track building ──────────────────────────────────────────────────────
@@ -490,7 +585,7 @@ Examples:
     const remoteAudioMap = await resolveRemoteAudio(dialogues);
     if (remoteUrls.length > 0) process.stdout.write(` done (${downloadCount} fetched, ${cachedCount} from cache)\n`);
 
-    const timings = buildTimeline(dialogues, pauseMs, remoteAudioMap);
+    const timings = await buildTimeline(dialogues, pauseMs, remoteAudioMap);
     const lastTiming = timings[timings.length - 1];
     const totalMs = lastTiming.showAtMs +
       (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
@@ -498,12 +593,7 @@ Examples:
 
     const { width, height } = theme.viewport;
 
-    const framesDir = await recordFrames(htmlPath, width, height, timings);
-
-    process.stdout.write("Encoding video ...");
-    encodeVideo(framesDir, silentMp4, width, height);
-    fs.rmSync(framesDir, { recursive: true });
-    process.stdout.write(" done\n");
+    await recordAndEncode(htmlPath, width, height, timings, silentMp4);
 
     const videoDurSec = getAudioDurationSec(silentMp4);
     const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
