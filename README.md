@@ -65,13 +65,37 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 When `--output` is omitted, files are written to:
 
 ```
-output/<YYYYMMDD-HHmmss>-<json-basename>/
+output/<YYYYMMDD-HHmmss>-<json-name>/
   output.html      ← rendered chat page (always)
   output.mp4       ← final video (only with --record)
   manifest.json    ← run metadata and file list
 ```
 
-Example: `output/20260414-143025-episode/`
+Example: `output/20260414-143025-name/`
+
+### Sample output (preview)
+
+A full example render from [`fixtures/episode.json`](./fixtures/episode.json) is committed under [`fixtures/preview/`](./fixtures/preview/):
+
+| File | Description |
+|------|-------------|
+| [`fixtures/preview/output.html`](./fixtures/preview/output.html) | Chat UI (open in a browser) |
+| [`fixtures/preview/output.mp4`](./fixtures/preview/output.mp4) | Sample recording from `--record` (same episode) |
+| [`fixtures/preview/manifest.json`](./fixtures/preview/manifest.json) | Run metadata for that sample |
+
+**Video preview** (recorded with `--record`, KakaoTalk theme):
+
+<video src="https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/preview/output.mp4" controls muted playsinline width="400"></video>
+
+**Hosted HTML preview** (layout and remote assets; no clone required):
+
+[Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/preview/output.html)
+
+**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/preview/output.html` or play `fixtures/preview/output.mp4`, or regenerate into that folder:
+
+```bash
+npx playchat fixtures/episode.json --output fixtures/preview --record
+```
 
 ### manifest.json
 
@@ -231,7 +255,11 @@ docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playch
 │   └── themes.test.ts   # Theme contract + pauseMs tests
 └── fixtures/
     ├── episode.json       # Full sample episode with real audio paths
-    └── episode_short.json # Shorter fixture for quick testing
+    ├── episode_short.json # Shorter fixture for quick testing
+    └── preview/            # Sample CLI output for README preview
+        ├── output.html
+        ├── output.mp4     # sample --record output (tracked despite root *.mp4)
+        └── manifest.json
 ```
 
 ### Setup

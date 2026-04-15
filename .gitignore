@@ -6,7 +6,5 @@ output/
 _audio_cache/
 _debug*
 *.mp4
-!fixtures/output/output.mp4
-output*.html
 .env
 .cursor/

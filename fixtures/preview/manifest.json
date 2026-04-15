@@ -1,0 +1,24 @@
+{
+  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\episode.json",
+  "theme": "kakaotalk",
+  "pauseMs": 3000,
+  "showAvatar": true,
+  "createdAt": "2026-04-15T18:13:41.747Z",
+  "files": {
+    "html": "output.html",
+    "mp4": "output.mp4",
+    "segments": [
+      {
+        "sectionId": 1,
+        "sectionTitle": "톡톡 인사말",
+        "mp4": "segments\\section_1_.mp4"
+      },
+      {
+        "sectionId": 2,
+        "sectionTitle": "실전 영어 상황극",
+        "mp4": "segments\\section_2_.mp4"
+      }
+    ]
+  },
+  "dialogueCount": 5
+}
