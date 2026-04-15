@@ -122,7 +122,7 @@ if (new URLSearchParams(location.search).get('autoplay') === '1') {
   protected wrapHTML(style: string, body: string, script: string): string {
     const { width, height } = this.viewport;
     return `<!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">

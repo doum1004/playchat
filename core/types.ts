@@ -32,10 +32,10 @@ export interface Section {
 export interface PodcastEpisode {
   episode_title: string;
   episode_number: number;
+  name?: string;
   topic: string;
   subtitle: string;
   summary: string;
-  duration_estimate: string;
   hosts: Host[];
   sections: Section[];
 }

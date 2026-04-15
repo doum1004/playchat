@@ -106,15 +106,15 @@ export class KakaoTalkTheme extends BaseTheme {
 <div class="device">
   <div class="kk-header">
     <span class="kk-back">&#8249;</span>
-    <span class="kk-room-name">톡톡 영어 EP.${ep.episode_number}</span>
+    <span class="kk-room-name">${ep.name ? ep.name + ' ' : ''}EP.${ep.episode_number}</span>
     <span class="kk-count">${this.hostCount}</span>
   </div>
   <div class="kk-body" id="chat-body">
-    <div class="date-divider"><span>2026년 4월 14일</span></div>
+    <div class="date-divider"><span>April 14, 2026</span></div>
     <div class="section-divider"><span>${this.firstSection}</span></div>
   </div>
   <div class="kk-footer">
-    <div class="kk-input">메시지 입력</div>
+    <div class="kk-input">Type a message</div>
     <div class="kk-send">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M1 7L13 1L9 13L7 8L1 7Z" fill="#3c2e00"/>
@@ -150,7 +150,7 @@ const HOST_MAP = ${this.hostMapJSON};
 function getTime() {
   const now = new Date();
   let h = now.getHours(), m = now.getMinutes();
-  const ampm = h >= 12 ? '오후' : '오전';
+  const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
   return ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
 }

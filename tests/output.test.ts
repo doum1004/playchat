@@ -128,8 +128,7 @@ describe("manifest.json structure", () => {
       showAvatar: true,
       createdAt: new Date().toISOString(),
       files: { html: "output.html" },
-      dialogueCount: 5,
-      durationEstimate: "5 minutes",
+      dialogueCount: 5
       ...extra,
     };
     const manifestPath = path.join(tmpDir, "manifest.json");
@@ -152,7 +151,6 @@ describe("manifest.json structure", () => {
     expect(data).toHaveProperty("createdAt");
     expect(data).toHaveProperty("files");
     expect(data).toHaveProperty("dialogueCount");
-    expect(data).toHaveProperty("durationEstimate");
   });
 
   it("files.html is always present", () => {

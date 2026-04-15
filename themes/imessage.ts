@@ -100,7 +100,7 @@ export class IMessageTheme extends BaseTheme {
     return `
 <div class="device">
   <div class="im-header">
-    <div class="title">톡톡 영어 EP.${ep.episode_number}</div>
+    <div class="title">${ep.name ? ep.name + ' ' : ''}EP.${ep.episode_number}</div>
     <div class="subtitle">${this.hostCount} people</div>
   </div>
   <div class="im-body" id="chat-body">

@@ -90,8 +90,7 @@ Every run writes a `manifest.json` to the output folder:
     "html": "output.html",
     "mp4": "output.mp4"
   },
-  "dialogueCount": 5,
-  "durationEstimate": "5 minutes"
+  "dialogueCount": 5
 }
 ```
 
@@ -112,16 +111,16 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
 
 ```json
 {
+  "name": "...",
   "episode_title": "...",
   "episode_number": 1,
   "topic": "...",
   "subtitle": "...",
   "summary": "...",
-  "duration_estimate": "8분",
   "hosts": [
     {
       "id": "host_1",
-      "name": "민수",
+      "name": "Minsu",
       "gender": "male",
       "role": "main_host",
       "lang": "ko",
@@ -133,13 +132,13 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
       "section_id": 1,
       "section_title": "Opening",
       "section_type": "opening",
-      "corner_name": "오프닝 🎙️",
+      "corner_name": "Opening 🎙️",
       "dialogues": [
         {
           "id": 1,
           "speaker": "host_1",
-          "name": "민수",
-          "text": "안녕하세요!",
+          "name": "Minsu",
+          "text": "Hello!",
           "audio": "path/to/segment_0000.mp3"
         }
       ]

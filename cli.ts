@@ -473,7 +473,6 @@ interface Manifest {
   createdAt: string;
   files: ManifestFiles;
   dialogueCount: number;
-  durationEstimate: string;
 }
 
 function writeManifest(outDir: string, data: Manifest) {
@@ -567,9 +566,8 @@ Examples:
       createdAt: new Date().toISOString(),
       files: manifestFiles,
       dialogueCount: dialogues.length,
-      durationEstimate: episode.duration_estimate ?? "",
     });
-    console.log(`Done  [${formatElapsed(Date.now() - startTime)}]`);
+    console.log(`Done  [Elapsed: ${formatElapsed(Date.now() - startTime)}]`);
     return;
   }
 
@@ -616,7 +614,7 @@ Examples:
 
     const outW = width * SCALE;
     const outH = height * SCALE;
-    console.log(`\nDone: ${mp4Path} (${outW}x${outH})  [${formatElapsed(Date.now() - startTime)}]`);
+    console.log(`\nDone: ${mp4Path} (${outW}x${outH}) [Elapsed: ${formatElapsed(Date.now() - startTime)}]`);
 
     manifestFiles.mp4 = "output.mp4";
 
@@ -668,8 +666,7 @@ Examples:
       showAvatar,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
-      dialogueCount: dialogues.length,
-      durationEstimate: episode.duration_estimate ?? "",
+      dialogueCount: dialogues.length
     });
   } catch (e) {
     console.error("Recording failed:", e);
