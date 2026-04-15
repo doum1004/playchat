@@ -4,8 +4,7 @@
   "description": "Multi-theme podcast chat renderer with video recording",
   "main": "dist/generate.js",
   "scripts": {
-    "generate": "ts-node generate.ts",
-    "record": "ts-node record-device.ts",
+    "start": "ts-node cli.ts",
     "build": "tsc",
     "test": "jest"
   },

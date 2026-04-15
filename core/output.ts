@@ -2,10 +2,18 @@ import * as fs from "fs";
 import * as path from "path";
 
 /**
- * Build a structured output directory: output/<YYYYMMDD-HHmmss>-<json-basename>/
- * Creates the directory recursively and returns the absolute path.
+ * Resolve the output directory.
+ *
+ * - If `explicitDir` is provided, creates and returns that directory.
+ * - Otherwise auto-generates: output/<YYYYMMDD-HHmmss>-<json-basename>/
  */
-export function resolveOutputDir(inputJsonPath: string): string {
+export function resolveOutputDir(inputJsonPath: string, explicitDir?: string): string {
+  if (explicitDir) {
+    const outputDir = path.resolve(explicitDir);
+    fs.mkdirSync(outputDir, { recursive: true });
+    return outputDir;
+  }
+
   const basename = path.basename(inputJsonPath, path.extname(inputJsonPath));
   const now = new Date();
 

@@ -31,10 +31,6 @@ function stripFlags(args: string[], ...flags: string[]): string[] {
 
 // ── Audio helpers ─────────────────────────────────────────────────────────────
 
-/**
- * Resolve an audio field (file:/// URI or raw local path) to an absolute
- * local path for ffprobe/ffmpeg. Returns null for http URLs or empty values.
- */
 function toLocalPath(audio: string): string | null {
   if (!audio) return null;
   if (/^https?:\/\//i.test(audio)) return null;
@@ -48,20 +44,12 @@ function toLocalPath(audio: string): string | null {
 
 const AUDIO_CACHE_DIR = path.resolve("_audio_cache");
 
-/**
- * Stable cache key for a URL: sha256(url), truncated to 16 hex chars.
- * Preserves the original file extension so ffprobe can detect the format.
- */
 function cacheKeyFor(url: string): string {
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 16);
   const ext = path.extname(new URL(url).pathname) || ".mp3";
   return `${hash}${ext}`;
 }
 
-/**
- * Download url to destPath, following redirects (up to maxRedirects).
- * Writes directly to destPath; caller is responsible for atomic swap.
- */
 function downloadFileTo(url: string, destPath: string, maxRedirects = 5): Promise<void> {
   return new Promise((resolve, reject) => {
     if (maxRedirects < 0) {
@@ -89,19 +77,6 @@ function downloadFileTo(url: string, destPath: string, maxRedirects = 5): Promis
   });
 }
 
-/**
- * Resolve a remote URL to a local cached file path.
- *
- * Cache layout:  _audio_cache/<sha256-16>.<ext>
- * Atomicity:     download → <key>.tmp  then  rename → <key>
- *                fs.rename is atomic on the same filesystem, so concurrent
- *                processes may both download but the final file is always
- *                a complete write — no process ever reads a partial file.
- * Lock file:     <key>.lock  — created exclusively (wx) so only one process
- *                enters the download path per key; others wait-poll and reuse
- *                the result.  Stale locks (process crashed) are removed after
- *                LOCK_TIMEOUT_MS.
- */
 const LOCK_TIMEOUT_MS = 60_000;
 const LOCK_POLL_MS    = 200;
 
@@ -113,43 +88,36 @@ async function cachedDownload(url: string): Promise<string> {
   const tmp      = `${cached}.tmp`;
   const lockFile = `${cached}.lock`;
 
-  // Fast path: cache hit
   if (fs.existsSync(cached)) return cached;
 
-  // Try to acquire the lock (O_EXCL — atomic on all major OSes & filesystems)
   let lockAcquired = false;
   try {
     fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
     lockAcquired = true;
   } catch {
-    // Another process holds the lock — wait for it to finish
+    // another process holds the lock
   }
 
   if (!lockAcquired) {
-    // Poll until the cached file appears or the lock becomes stale
     const deadline = Date.now() + LOCK_TIMEOUT_MS;
     while (Date.now() < deadline) {
       await new Promise((r) => setTimeout(r, LOCK_POLL_MS));
       if (fs.existsSync(cached)) return cached;
-
-      // Check if the lock is stale (owner crashed)
       try {
         const stat = fs.statSync(lockFile);
-        if (Date.now() - stat.mtimeMs > LOCK_TIMEOUT_MS) break; // take over below
+        if (Date.now() - stat.mtimeMs > LOCK_TIMEOUT_MS) break;
       } catch {
-        // lock vanished — loop will pick up cached file or exit
+        // lock vanished
       }
     }
-    // One last check before attempting a take-over download
     if (fs.existsSync(cached)) return cached;
-    // Stale lock: remove it and fall through to download ourselves
     try { fs.unlinkSync(lockFile); } catch { /* ignore */ }
-    fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" }); // may throw if race; caller retries via outer catch
+    fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
   }
 
   try {
     await downloadFileTo(url, tmp);
-    fs.renameSync(tmp, cached); // atomic on same filesystem
+    fs.renameSync(tmp, cached);
   } finally {
     try { fs.unlinkSync(lockFile); } catch { /* ignore */ }
     try { fs.unlinkSync(tmp); }      catch { /* ignore */ }
@@ -158,11 +126,6 @@ async function cachedDownload(url: string): Promise<string> {
   return cached;
 }
 
-/**
- * Resolve all remote audio URLs in the dialogues to local cached paths.
- * Returns a map from original URL -> local file path.
- * Deduplicates URLs so each is downloaded at most once per run.
- */
 async function resolveRemoteAudio(dialogues: FlatDialogue[]): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
   const uniqueUrls = [
@@ -183,10 +146,6 @@ async function resolveRemoteAudio(dialogues: FlatDialogue[]): Promise<Map<string
   return urlMap;
 }
 
-/**
- * Use ffprobe to get the exact duration of a local audio file in seconds.
- * Returns 0 on any error.
- */
 function getAudioDurationSec(filePath: string): number {
   try {
     const out = execFileSync("ffprobe", [
@@ -205,22 +164,11 @@ function getAudioDurationSec(filePath: string): number {
 // ── Timeline ──────────────────────────────────────────────────────────────────
 
 interface DialogueTiming {
-  showAtMs: number;       // when the chat bubble appears
-  audioDurationMs: number; // 0 if no audio
+  showAtMs: number;
+  audioDurationMs: number;
   localAudioPath: string | null;
 }
 
-/**
- * Build an offline timeline for all dialogues.
- * Each dialogue appears at the moment its audio starts (or after the previous
- * message's audio + post-audio gap). No-audio messages use pauseMs.
- *
- * Timeline:
- *   t=0          message 0 appears + audio 0 starts
- *   t=dur0+400   message 1 appears + audio 1 starts   (400ms post-audio gap)
- *   t=...        etc.
- *   no-audio:    message appears, then waits pauseMs before next
- */
 function buildTimeline(
   dialogues: FlatDialogue[],
   pauseMs: number,
@@ -246,11 +194,7 @@ function buildTimeline(
       durationMs = Math.round(getAudioDurationSec(localPath) * 1000);
     }
 
-    timings.push({
-      showAtMs: cursorMs,
-      audioDurationMs: durationMs,
-      localAudioPath: localPath,
-    });
+    timings.push({ showAtMs: cursorMs, audioDurationMs: durationMs, localAudioPath: localPath });
 
     if (durationMs > 0) {
       cursorMs += durationMs + POST_AUDIO_GAP_MS;
@@ -264,13 +208,12 @@ function buildTimeline(
 
 // ── Puppeteer recorder ────────────────────────────────────────────────────────
 
-async function record(
+async function recordFrames(
   htmlPath: string,
-  outputMp4: string,
   width: number,
   height: number,
   timings: DialogueTiming[]
-) {
+): Promise<string> {
   const framesDir = path.resolve("_frames");
   if (fs.existsSync(framesDir)) fs.rmSync(framesDir, { recursive: true });
   fs.mkdirSync(framesDir);
@@ -288,7 +231,6 @@ async function record(
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: SCALE });
 
-  // Inject the timeline before the page's scripts run
   const timelineMs = timings.map((t) => t.showAtMs);
   await page.evaluateOnNewDocument(
     `(function(tl) { window.__TIMELINE__ = tl; })(${JSON.stringify(timelineMs)})`
@@ -296,14 +238,11 @@ async function record(
 
   const fileUrl = `file://${path.resolve(htmlPath)}?autoplay=1`;
   await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
-
-  // Let the page settle (DOMContentLoaded, load event, initScrubberMode)
   await new Promise((r) => setTimeout(r, 500));
 
   process.stdout.write(`Recording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s) ...`);
 
   for (let frame = 0; frame < totalFrames; frame++) {
-    // Tell the browser exactly what time this frame represents
     const frameTimeMs = Math.round((frame / FPS) * 1000);
     await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${frameTimeMs})`);
 
@@ -343,35 +282,17 @@ function encodeVideo(framesDir: string, silentMp4: string, width: number, height
 
 // ── Audio track building ──────────────────────────────────────────────────────
 
-/**
- * Build a single audio track using an ffmpeg adelay+amix filter graph.
- *
- * Each clip is placed at its exact millisecond offset via adelay — no
- * intermediate silence files and no concat boundaries, so there is zero
- * cumulative drift between the audio and the frame-accurate video timeline.
- *
- * Input 0 is a silent base track that defines the total duration.
- * Inputs 1..N are the audio clips, each resampled to 44100 Hz stereo fltp
- * and delayed to their timeline offset.
- *
- * For large dialogue counts the filter graph is written to a temp file and
- * loaded via -filter_complex_script to avoid OS command-line length limits.
- */
 function buildAudioTrack(timings: DialogueTiming[], outputAudio: string, totalDurationMs: number): boolean {
   const clips = timings.filter((t) => t.localAudioPath !== null);
   if (clips.length === 0) return false;
 
   const totalSec = (totalDurationMs / 1000).toFixed(3);
 
-  // Build ffmpeg input args: [0] = silent base, [1..N] = audio clips
-  const inputArgs: string[] = [
-    "-f", "lavfi", "-i", `anullsrc=r=44100:cl=stereo`,
-  ];
+  const inputArgs: string[] = ["-f", "lavfi", "-i", `anullsrc=r=44100:cl=stereo`];
   for (const c of clips) {
     inputArgs.push("-i", c.localAudioPath!);
   }
 
-  // Build filter graph: resample + delay each clip, then amix all together
   const filterLines: string[] = [];
   const mixLabels: string[] = ["[0:a]"];
 
@@ -391,7 +312,6 @@ function buildAudioTrack(timings: DialogueTiming[], outputAudio: string, totalDu
   );
   const filterGraph = filterLines.join(";\n");
 
-  // Use -filter_complex_script for large graphs to avoid command-line length limits
   let filterScriptPath: string | null = null;
   const ffmpegArgs = ["-y", ...inputArgs];
 
@@ -424,28 +344,70 @@ function muxVideoAudio(silentMp4: string, audioTrack: string, outputMp4: string)
   );
 }
 
+// ── Segment cutting ───────────────────────────────────────────────────────────
+
+function cutSegment(sourceMp4: string, startSec: number, durationSec: number, outMp4: string) {
+  execFileSync("ffmpeg", [
+    "-y",
+    "-ss", startSec.toFixed(3),
+    "-i", sourceMp4,
+    "-t", durationSec.toFixed(3),
+    "-c", "copy",
+    outMp4,
+  ], { stdio: "pipe" });
+}
+
+// ── Manifest ──────────────────────────────────────────────────────────────────
+
+interface ManifestFiles {
+  html: string;
+  mp4?: string;
+  segments?: { sectionId: number; sectionTitle: string; mp4: string }[];
+}
+
+interface Manifest {
+  input: string;
+  theme: string;
+  pauseMs: number;
+  showAvatar: boolean;
+  createdAt: string;
+  files: ManifestFiles;
+  dialogueCount: number;
+  durationEstimate: string;
+}
+
+function writeManifest(outDir: string, data: Manifest) {
+  const manifestPath = path.join(outDir, "manifest.json");
+  fs.writeFileSync(manifestPath, JSON.stringify(data, null, 2), "utf-8");
+  console.log(`   Manifest:  ${manifestPath}`);
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
 
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx ts-node record-device.ts <input.json> [output.mp4] [--theme <id>] [--pause <ms>] [--no-avatar]
+  npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 
-  If output.mp4 is omitted, files go to output/<date-time>-<name>/
+  If --output is omitted, files go to output/<date-time>-<name>/
 
 Options:
-  --theme <id>   Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
-  --pause <ms>   No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
-  --no-avatar    Hide avatar circles and sender names
+  --output <dir>  Output folder path
+  --record        Also produce an MP4 video (requires ffmpeg + ffprobe)
+  --segments      Also produce individual MP4 videos per section (requires --record)
+  --theme <id>    Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
+  --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
+  --no-avatar     Hide avatar circles and sender names
 
 Examples:
-  npx ts-node record-device.ts episode.json
-  npx ts-node record-device.ts episode.json output.mp4 --theme kakaotalk
-  npx ts-node record-device.ts episode.json --theme imessage --pause 5000
-  npx ts-node record-device.ts episode.json --no-avatar
+  npx ts-node cli.ts episode.json
+  npx ts-node cli.ts episode.json --output ./my-output --theme imessage
+  npx ts-node cli.ts episode.json --record --pause 5000
+  npx ts-node cli.ts episode.json --record --segments
+  npx ts-node cli.ts episode.json --output ./my-output --record --no-avatar
 `);
     process.exit(0);
   }
@@ -454,8 +416,9 @@ Examples:
   const themeId = parseFlag(args, "--theme") || "kakaotalk";
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
   const showAvatar = !args.includes("--no-avatar");
-  const positionalArgs = stripFlags(args, "--theme", "--pause").filter(a => a !== "--no-avatar");
-  const explicitOutput = positionalArgs[1];
+  const doRecord = args.includes("--record");
+  const doSegments = args.includes("--segments");
+  const explicitOutput = parseFlag(args, "--output");
 
   if (!fs.existsSync(inputPath)) {
     console.error(`File not found: ${inputPath}`);
@@ -480,24 +443,37 @@ Examples:
     process.exit(1);
   }
 
-  let mp4Path: string;
-  let htmlPath: string;
-
-  if (explicitOutput) {
-    mp4Path = explicitOutput;
-    htmlPath = mp4Path.replace(/\.mp4$/i, ".html");
-    const dir = path.dirname(mp4Path);
-    if (dir && dir !== ".") fs.mkdirSync(dir, { recursive: true });
-  } else {
-    const outDir = resolveOutputDir(inputPath);
-    mp4Path = path.join(outDir, "output.mp4");
-    htmlPath = path.join(outDir, "output.html");
-  }
+  const outDir = resolveOutputDir(inputPath, explicitOutput);
+  const htmlPath = path.join(outDir, "output.html");
 
   fs.writeFileSync(htmlPath, theme.render(), "utf-8");
+  console.log(`Generated: ${htmlPath}`);
+  console.log(`   Theme:     ${theme.label} (${theme.id})`);
+  console.log(`   Viewport:  ${theme.viewport.width}x${theme.viewport.height}`);
+  console.log(`   Dialogues: ${dialogues.length}`);
+  console.log(`   Pause:     ${pauseMs}ms`);
 
-  const silentMp4 = mp4Path.replace(/\.mp4$/i, "_silent.mp4");
-  const audioTrack = mp4Path.replace(/\.mp4$/i, "_audio.aac");
+  const manifestFiles: ManifestFiles = { html: "output.html" };
+
+  if (!doRecord) {
+    writeManifest(outDir, {
+      input: path.resolve(inputPath),
+      theme: themeId,
+      pauseMs,
+      showAvatar,
+      createdAt: new Date().toISOString(),
+      files: manifestFiles,
+      dialogueCount: dialogues.length,
+      durationEstimate: episode.duration_estimate ?? "",
+    });
+    return;
+  }
+
+  // ── Recording pipeline ────────────────────────────────────────────────────
+
+  const mp4Path = path.join(outDir, "output.mp4");
+  const silentMp4 = path.join(outDir, "output_silent.mp4");
+  const audioTrack = path.join(outDir, "output_audio.aac");
 
   const remoteUrls = dialogues.filter((d) => /^https?:\/\//i.test(d.audioRaw || d.audio));
   const cachedCount = remoteUrls.filter((d) => {
@@ -510,50 +486,103 @@ Examples:
     process.stdout.write(`Downloading remote audio${cacheNote} ...`);
   }
 
-  resolveRemoteAudio(dialogues)
-    .then((remoteAudioMap) => {
-      if (remoteUrls.length > 0) process.stdout.write(` done (${downloadCount} fetched, ${cachedCount} from cache)\n`);
+  try {
+    const remoteAudioMap = await resolveRemoteAudio(dialogues);
+    if (remoteUrls.length > 0) process.stdout.write(` done (${downloadCount} fetched, ${cachedCount} from cache)\n`);
 
-      const timings = buildTimeline(dialogues, pauseMs, remoteAudioMap);
-      const lastTiming = timings[timings.length - 1];
-      const totalMs = lastTiming.showAtMs +
-        (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
-      console.log(`Timeline: ${timings.length} messages, ~${(totalMs / 1000).toFixed(1)}s`);
+    const timings = buildTimeline(dialogues, pauseMs, remoteAudioMap);
+    const lastTiming = timings[timings.length - 1];
+    const totalMs = lastTiming.showAtMs +
+      (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
+    console.log(`Timeline: ${timings.length} messages, ~${(totalMs / 1000).toFixed(1)}s`);
 
-      const { width, height } = theme.viewport;
+    const { width, height } = theme.viewport;
 
-      return record(htmlPath, silentMp4, width, height, timings).then((framesDir) => {
-        process.stdout.write("Encoding video ...");
-        encodeVideo(framesDir, silentMp4, width, height);
-        fs.rmSync(framesDir, { recursive: true });
+    const framesDir = await recordFrames(htmlPath, width, height, timings);
+
+    process.stdout.write("Encoding video ...");
+    encodeVideo(framesDir, silentMp4, width, height);
+    fs.rmSync(framesDir, { recursive: true });
+    process.stdout.write(" done\n");
+
+    const videoDurSec = getAudioDurationSec(silentMp4);
+    const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
+
+    if (hasAudio) {
+      const audioDurSec = getAudioDurationSec(audioTrack);
+      console.log(`Sync check: video=${videoDurSec.toFixed(2)}s  audio=${audioDurSec.toFixed(2)}s  drift=${Math.abs(videoDurSec - audioDurSec).toFixed(2)}s`);
+
+      process.stdout.write("Muxing audio + video ...");
+      muxVideoAudio(silentMp4, audioTrack, mp4Path);
+      fs.unlinkSync(silentMp4);
+      fs.unlinkSync(audioTrack);
+      process.stdout.write(" done\n");
+    } else {
+      fs.renameSync(silentMp4, mp4Path);
+    }
+
+    const outW = width * SCALE;
+    const outH = height * SCALE;
+    console.log(`\nDone: ${mp4Path} (${outW}x${outH})`);
+
+    manifestFiles.mp4 = "output.mp4";
+
+    if (doSegments) {
+      const segmentsDir = path.join(outDir, "segments");
+      fs.mkdirSync(segmentsDir, { recursive: true });
+
+      const sectionMeta: { sectionId: number; sectionTitle: string; mp4: string }[] = [];
+      let globalIdx = 0;
+
+      for (const section of episode.sections) {
+        const count = section.dialogues.length;
+        if (count === 0) { globalIdx += count; continue; }
+
+        const firstTiming = timings[globalIdx];
+        const lastTiming  = timings[globalIdx + count - 1];
+        const startMs     = firstTiming.showAtMs;
+        const endMs       = lastTiming.showAtMs +
+          (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 500;
+        const durationMs  = endMs - startMs;
+
+        const safeName = section.corner_name
+          .replace(/[^a-z0-9]+/gi, "_")
+          .replace(/^_|_$/g, "")
+          .toLowerCase();
+        const segFile = `section_${section.section_id}_${safeName}.mp4`;
+        const segPath = path.join(segmentsDir, segFile);
+
+        process.stdout.write(`  Cutting segment: ${section.corner_name} (${(durationMs / 1000).toFixed(1)}s) ...`);
+        cutSegment(mp4Path, startMs / 1000, durationMs / 1000, segPath);
         process.stdout.write(" done\n");
 
-        const videoDurSec = getAudioDurationSec(silentMp4);
+        sectionMeta.push({
+          sectionId: section.section_id,
+          sectionTitle: section.section_title,
+          mp4: path.join("segments", segFile),
+        });
 
-        const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
+        globalIdx += count;
+      }
 
-        if (hasAudio) {
-          const audioDurSec = getAudioDurationSec(audioTrack);
-          console.log(`Sync check: video=${videoDurSec.toFixed(2)}s  audio=${audioDurSec.toFixed(2)}s  drift=${Math.abs(videoDurSec - audioDurSec).toFixed(2)}s`);
+      manifestFiles.segments = sectionMeta;
+      console.log(`Segments: ${sectionMeta.length} written to ${segmentsDir}`);
+    }
 
-          process.stdout.write("Muxing audio + video ...");
-          muxVideoAudio(silentMp4, audioTrack, mp4Path);
-          fs.unlinkSync(silentMp4);
-          fs.unlinkSync(audioTrack);
-          process.stdout.write(" done\n");
-        } else {
-          fs.renameSync(silentMp4, mp4Path);
-        }
-
-        const outW = width * SCALE;
-        const outH = height * SCALE;
-        console.log(`\nDone: ${mp4Path} (${outW}x${outH})`);
-      });
-    })
-    .catch((e) => {
-      console.error("Recording failed:", e);
-      process.exit(1);
+    writeManifest(outDir, {
+      input: path.resolve(inputPath),
+      theme: themeId,
+      pauseMs,
+      showAvatar,
+      createdAt: new Date().toISOString(),
+      files: manifestFiles,
+      dialogueCount: dialogues.length,
+      durationEstimate: episode.duration_estimate ?? "",
     });
+  } catch (e) {
+    console.error("Recording failed:", e);
+    process.exit(1);
+  }
 }
 
 main();

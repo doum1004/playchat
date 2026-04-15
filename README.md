@@ -7,8 +7,7 @@ frame-perfectly synced with the audio track.
 ## Architecture
 
 ```
-├── generate.ts          # CLI: JSON → themed HTML
-├── record-device.ts     # CLI: JSON → MP4 (Puppeteer + ffmpeg)
+├── cli.ts               # Single CLI entry point (HTML preview + optional MP4 recording)
 ├── core/
 │   ├── types.ts         # Interfaces, flattenDialogues(), normalizeAudioPath()
 │   └── output.ts        # resolveOutputDir() — structured output folders
@@ -37,39 +36,66 @@ frame-perfectly synced with the audio track.
 npm install
 
 # HTML preview (default theme: kakaotalk, files go to output/<timestamp>-<name>/)
-npx ts-node generate.ts fixtures/episode.json
+npx ts-node cli.ts fixtures/episode.json
 
-# Explicit output path
-npx ts-node generate.ts fixtures/episode.json out.html --theme imessage
+# HTML preview to an explicit output folder
+npx ts-node cli.ts fixtures/episode.json --output ./my-output --theme imessage
 
 # Record to MP4 (output goes to output/<timestamp>-<name>/)
-npx ts-node record-device.ts fixtures/episode.json
+npx ts-node cli.ts fixtures/episode.json --record
 
-# Record with explicit path and custom pause
-npx ts-node record-device.ts fixtures/episode.json out.mp4 --theme kakaotalk --pause 4000
+# Record with explicit output folder, custom theme and pause
+npx ts-node cli.ts fixtures/episode.json --output ./my-output --record --theme kakaotalk --pause 4000
 ```
 
 ## CLI Options
 
-Both `generate.ts` and `record-device.ts` accept the same flags:
+```
+npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--theme <id>] [--pause <ms>] [--no-avatar]
+```
 
 | Flag | Default | Description |
 |---|---|---|
+| `--output <dir>` | auto-generated | Output folder path |
+| `--record` | _(off)_ | Also produce an MP4 video |
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
 
 ## Output Directory
 
-When no explicit output path is given, files are written to:
+When `--output` is omitted, files are written to:
 
 ```
 output/<YYYYMMDD-HHmmss>-<json-basename>/
-  output.html   ← rendered chat page
-  output.mp4    ← final video (recorder only)
+  output.html      ← rendered chat page (always)
+  output.mp4       ← final video (only with --record)
+  manifest.json    ← run metadata and file list
 ```
 
 Example: `output/20260414-143025-episode/`
+
+### manifest.json
+
+Every run writes a `manifest.json` to the output folder:
+
+```json
+{
+  "input": "/absolute/path/to/episode.json",
+  "theme": "kakaotalk",
+  "pauseMs": 3000,
+  "showAvatar": true,
+  "createdAt": "2026-04-14T20:57:14.123Z",
+  "files": {
+    "html": "output.html",
+    "mp4": "output.mp4"
+  },
+  "dialogueCount": 5,
+  "durationEstimate": "5 minutes"
+}
+```
+
+`files.mp4` is only present when `--record` was used. All file paths are relative to the output folder.
 
 ## Available Themes
 
@@ -222,8 +248,8 @@ const registry = {
 3. Use it:
 
 ```bash
-npx ts-node generate.ts episode.json --theme yourtheme
-npx ts-node record-device.ts episode.json --theme yourtheme
+npx ts-node cli.ts episode.json --theme yourtheme
+npx ts-node cli.ts episode.json --theme yourtheme --record
 ```
 
 ### Theme contract
