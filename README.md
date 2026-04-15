@@ -195,6 +195,17 @@ screenshot overhead.
 The HTML file uses the normal live-audio mode for browser preview: audio
 plays via `new Audio()` and the next message appears when `onended` fires.
 
+## Docker
+
+**Production (installs from npm):**
+```bash
+docker build -t playchat .
+docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playchat \
+  playchat input/episode.json
+docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playchat \
+  playchat input/episode.json --record --theme kakaotalk
+```
+
 ## Development
 
 ### Project Structure
