@@ -152,12 +152,17 @@ const ME = ${JSON.stringify(this.meHostId)};
 const SHOW_AVATAR = ${this.showAvatar};
 const HOST_MAP = ${this.hostMapJSON};
 
-function getTime() {
-  const now = new Date();
-  let h = now.getHours(), m = now.getMinutes();
-  const ampm = h >= 12 ? 'PM' : 'AM';
+var _virtualClockMs = Date.now();
+function getTime(audioDurationSec) {
+  var t = new Date(_virtualClockMs);
+  var h = t.getHours(), m = t.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
-  return ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  var stamp = ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  if (audioDurationSec && audioDurationSec > 0) {
+    _virtualClockMs += audioDurationSec * 1000;
+  }
+  return stamp;
 }
 
 function avatarHTML(d) {
@@ -167,7 +172,7 @@ function avatarHTML(d) {
 
 function appendMsg(d) {
   var side = d.speaker === ME ? 'right' : 'left';
-  var t = getTime();
+  var t = getTime(d.audioDurationSec);
 
   if (d.section !== lastSection) {
     var div = document.createElement('div');

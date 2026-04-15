@@ -128,7 +128,7 @@ describe("manifest.json structure", () => {
       showAvatar: true,
       createdAt: new Date().toISOString(),
       files: { html: "output.html" },
-      dialogueCount: 5
+      dialogueCount: 5,
       ...extra,
     };
     const manifestPath = path.join(tmpDir, "manifest.json");

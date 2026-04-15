@@ -1,0 +1,12 @@
+*.ts
+!dist/**
+tests/
+fixtures/
+_frames/
+_audio_cache/
+output/
+input/
+.cursor/
+.env
+tsconfig.json
+jest.config.ts

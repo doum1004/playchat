@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import puppeteer from "puppeteer";
 import { execSync, execFileSync, execFile, spawn } from "child_process";
 import * as fs from "fs";
@@ -86,7 +87,7 @@ async function cachedDownload(url: string): Promise<string> {
 
   const key      = cacheKeyFor(url);
   const cached   = path.join(AUDIO_CACHE_DIR, key);
-  const tmp      = `${cached}.tmp`;
+  const tmp      = `${cached}.${process.pid}.${Date.now()}.tmp`;
   const lockFile = `${cached}.lock`;
 
   if (fs.existsSync(cached)) return cached;
@@ -108,15 +109,26 @@ async function cachedDownload(url: string): Promise<string> {
         const stat = fs.statSync(lockFile);
         if (Date.now() - stat.mtimeMs > LOCK_TIMEOUT_MS) break;
       } catch {
-        // lock vanished
+        break; // lock vanished, try to acquire
       }
     }
     if (fs.existsSync(cached)) return cached;
     try { fs.unlinkSync(lockFile); } catch { /* ignore */ }
-    fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
+    try {
+      fs.writeFileSync(lockFile, String(process.pid), { flag: "wx" });
+    } catch {
+      // Another process grabbed the lock; wait for it to finish
+      const retryDeadline = Date.now() + LOCK_TIMEOUT_MS;
+      while (Date.now() < retryDeadline) {
+        await new Promise((r) => setTimeout(r, LOCK_POLL_MS));
+        if (fs.existsSync(cached)) return cached;
+      }
+      throw new Error(`Timed out waiting for cached download of ${url}`);
+    }
   }
 
   try {
+    if (fs.existsSync(cached)) return cached;
     await downloadFileTo(url, tmp);
     fs.renameSync(tmp, cached);
   } finally {
@@ -247,9 +259,8 @@ async function recordStatic(
     args: ["--no-sandbox", "--disable-web-security"],
   });
 
-  const tmpDir = path.resolve("_static_tmp");
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
-  fs.mkdirSync(tmpDir);
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pvg_static_"));
+
 
   try {
     const page = await browser.newPage();
@@ -420,9 +431,8 @@ async function recordAndEncode(
     args: ["--no-sandbox", "--disable-web-security"],
   });
 
-  const tmpDir = path.resolve("_seg_tmp");
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
-  fs.mkdirSync(tmpDir);
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pvg_seg_"));
+
 
   // Divide frames evenly across workers
   const chunkSize = Math.ceil(totalFrames / WORKER_COUNT);
@@ -582,6 +592,7 @@ function formatElapsed(ms: number): string {
 }
 
 async function main() {
+  let precomputedRemoteAudioMap: Map<string, string> | undefined;
   const startTime = Date.now();
   const args = process.argv.slice(2);
 
@@ -635,6 +646,27 @@ Examples:
 
   const dialogues = flattenDialogues(episode);
 
+  // Pre-compute audio durations and stamp them on dialogues so themes can
+  // display realistic timestamps (e.g. KakaoTalk's virtual clock).
+  if (doRecord || doRecordFull) {
+    const remoteAudioMap = await resolveRemoteAudio(dialogues);
+    const localPaths: (string | null)[] = dialogues.map((d) => {
+      const raw = d.audioRaw || d.audio;
+      if (!raw) return null;
+      if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
+      const local = toLocalPath(raw);
+      return local && fs.existsSync(local) ? local : null;
+    });
+    const durations = await Promise.all(
+      localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
+    );
+    for (let i = 0; i < dialogues.length; i++) {
+      dialogues[i].audioDurationSec = durations[i];
+    }
+    // Store the map so we don't re-download later
+    precomputedRemoteAudioMap = remoteAudioMap;
+  }
+
   let theme;
   try {
     theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar });
@@ -671,21 +703,8 @@ Examples:
   const silentMp4 = path.join(outDir, "output_silent.mp4");
   const audioTrack = path.join(outDir, "output_audio.aac");
 
-  const remoteUrls = dialogues.filter((d) => /^https?:\/\//i.test(d.audioRaw || d.audio));
-  const cachedCount = remoteUrls.filter((d) => {
-    try { return fs.existsSync(path.join(AUDIO_CACHE_DIR, cacheKeyFor(d.audioRaw || d.audio))); } catch { return false; }
-  }).length;
-  const downloadCount = remoteUrls.length - cachedCount;
-
-  if (remoteUrls.length > 0) {
-    const cacheNote = cachedCount > 0 ? ` (${cachedCount} cached)` : "";
-    process.stdout.write(`Downloading remote audio${cacheNote} ...`);
-  }
-
   try {
-    const remoteAudioMap = await resolveRemoteAudio(dialogues);
-    if (remoteUrls.length > 0) process.stdout.write(` done (${downloadCount} fetched, ${cachedCount} from cache)\n`);
-
+    const remoteAudioMap: Map<string, string> = precomputedRemoteAudioMap ?? new Map();
     const timings = await buildTimeline(dialogues, pauseMs, remoteAudioMap);
     const lastTiming = timings[timings.length - 1];
     const totalMs = lastTiming.showAtMs +

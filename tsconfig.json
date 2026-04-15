@@ -15,5 +15,5 @@
     "sourceMap": true
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "_frames"]
+  "exclude": ["node_modules", "dist", "_frames", "tests", "jest.config.ts"]
 }

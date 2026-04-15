@@ -60,6 +60,8 @@ export interface FlatDialogue {
   /** Original audio value before normalization (local path, URL, or empty) */
   audioRaw: string;
   section: string;
+  /** Duration of the audio clip in seconds (0 if no audio). Populated by CLI before rendering. */
+  audioDurationSec: number;
 }
 
 /**
@@ -88,6 +90,7 @@ export function flattenDialogues(episode: PodcastEpisode): FlatDialogue[] {
         audio: normalizeAudioPath(d.audio),
         audioRaw: d.audio,
         section: section.corner_name,
+        audioDurationSec: 0,
       });
     }
   }

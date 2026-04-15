@@ -2,14 +2,33 @@
   "name": "playchat",
   "version": "1.0.0",
   "description": "Multi-theme podcast chat renderer with video recording",
-  "main": "dist/generate.js",
+  "main": "dist/cli.js",
+  "bin": {
+    "playchat": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "start": "ts-node cli.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": ["podcast", "video", "kakaotalk", "chat", "renderer"],
+  "keywords": ["podcast", "video", "kakaotalk", "imessage", "chat", "renderer", "mp4"],
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doum1004/chat-in-video.git"
+  },
+  "bugs": {
+    "url": "https://github.com/doum1004/chat-in-video/issues"
+  },
+  "homepage": "https://github.com/doum1004/chat-in-video#readme",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
