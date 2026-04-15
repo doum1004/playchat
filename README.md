@@ -1,28 +1,22 @@
 # PlayChat
 
+[![npm version](https://img.shields.io/npm/v/playchat.svg)](https://www.npmjs.com/package/playchat)
+[![license](https://img.shields.io/npm/l/playchat.svg)](https://github.com/doum1004/chat-in-video/blob/main/LICENSE)
+
 Converts a podcast episode JSON file into a themed chat-UI video (MP4). Audio
 clips are sequenced by their measured durations and the final video is
 frame-perfectly synced with the audio track.
 
-## Architecture
+## Installation
 
+```bash
+npm install -g playchat
 ```
-├── cli.ts               # Single CLI entry point (HTML preview + optional MP4 recording)
-├── core/
-│   ├── types.ts         # Interfaces, flattenDialogues(), normalizeAudioPath()
-│   └── output.ts        # resolveOutputDir() — structured output folders
-├── themes/
-│   ├── base.ts          # Abstract BaseTheme (engine script, scrubber mode)
-│   ├── kakaotalk.ts     # KakaoTalk theme
-│   ├── imessage.ts      # iMessage theme
-│   └── index.ts         # Theme registry + getTheme()
-├── tests/
-│   ├── flatten.test.ts  # Data layer + audio normalisation tests
-│   ├── output.test.ts   # Output directory tests
-│   └── themes.test.ts   # Theme contract + pauseMs tests
-└── fixtures/
-    ├── episode.json       # Full sample episode with real audio paths
-    └── episode_short.json # Shorter fixture for quick testing
+
+Or run directly with `npx`:
+
+```bash
+npx playchat episode.json --record
 ```
 
 ## Requirements
@@ -33,31 +27,31 @@ frame-perfectly synced with the audio track.
 ## Quick Start
 
 ```bash
-npm install
-
 # HTML preview (default theme: kakaotalk, files go to output/<timestamp>-<name>/)
-npx ts-node cli.ts fixtures/episode.json
+npx playchat episode.json
 
 # HTML preview to an explicit output folder
-npx ts-node cli.ts fixtures/episode.json --output ./my-output --theme imessage
+npx playchat episode.json --output ./my-output --theme imessage
 
 # Record to MP4 (output goes to output/<timestamp>-<name>/)
-npx ts-node cli.ts fixtures/episode.json --record
+npx playchat episode.json --record
 
 # Record with explicit output folder, custom theme and pause
-npx ts-node cli.ts fixtures/episode.json --output ./my-output --record --theme kakaotalk --pause 4000
+npx playchat episode.json --output ./my-output --record --theme kakaotalk --pause 4000
 ```
 
 ## CLI Options
 
 ```
-npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--theme <id>] [--pause <ms>] [--no-avatar]
+npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 ```
 
 | Flag | Default | Description |
 |---|---|---|
 | `--output <dir>` | auto-generated | Output folder path |
-| `--record` | _(off)_ | Also produce an MP4 video |
+| `--record` | _(off)_ | Produce an MP4 using static images (fast; one screenshot per dialogue) |
+| `--record-full` | _(off)_ | Produce an MP4 using full frame-by-frame recording (slow; more CPU) |
+| `--segments` | _(off)_ | Also produce individual MP4 videos per section (requires `--record` or `--record-full`) |
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
@@ -194,11 +188,53 @@ that frame represents. The browser renders whatever messages are due by that
 time and no more — guaranteeing frame-perfect chat/audio sync regardless of
 screenshot overhead.
 
-The HTML file (from `generate.ts`) uses the normal live-audio mode for
-browser preview: audio plays via `new Audio()` and the next message appears
-when `onended` fires.
+The HTML file uses the normal live-audio mode for browser preview: audio
+plays via `new Audio()` and the next message appears when `onended` fires.
 
-## How to Add a New Theme
+## Development
+
+### Project Structure
+
+```
+├── cli.ts               # CLI entry point (HTML preview + optional MP4 recording)
+├── core/
+│   ├── types.ts         # Interfaces, flattenDialogues(), normalizeAudioPath()
+│   └── output.ts        # resolveOutputDir() — structured output folders
+├── themes/
+│   ├── base.ts          # Abstract BaseTheme (engine script, scrubber mode)
+│   ├── kakaotalk.ts     # KakaoTalk theme
+│   ├── imessage.ts      # iMessage theme
+│   └── index.ts         # Theme registry + getTheme()
+├── tests/
+│   ├── flatten.test.ts  # Data layer + audio normalisation tests
+│   ├── output.test.ts   # Output directory tests
+│   └── themes.test.ts   # Theme contract + pauseMs tests
+└── fixtures/
+    ├── episode.json       # Full sample episode with real audio paths
+    └── episode_short.json # Shorter fixture for quick testing
+```
+
+### Setup
+
+```bash
+git clone https://github.com/doum1004/chat-in-video.git
+cd chat-in-video
+npm install
+```
+
+### Running from source
+
+```bash
+npx ts-node cli.ts episode.json --record
+```
+
+### Testing
+
+```bash
+npm test
+```
+
+### Adding a New Theme
 
 1. Create `themes/yourtheme.ts`:
 
@@ -247,8 +283,8 @@ const registry = {
 3. Use it:
 
 ```bash
-npx ts-node cli.ts episode.json --theme yourtheme
-npx ts-node cli.ts episode.json --theme yourtheme --record
+npx playchat episode.json --theme yourtheme
+npx playchat episode.json --theme yourtheme --record
 ```
 
 ### Theme contract
@@ -274,13 +310,6 @@ Every theme must satisfy three requirements in its JS block:
 }
 ```
 
-## Testing
+## License
 
-```bash
-npm test
-```
-
-57 tests across three suites:
-- `flatten.test.ts` — data interfaces, audio path normalisation
-- `output.test.ts` — output directory naming and creation
-- `themes.test.ts` — theme contract, `pauseMs` propagation, dynamic host, `showAvatar`
+MIT
