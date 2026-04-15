@@ -1,7 +1,11 @@
 # PlayChat
 
-[![npm version](https://img.shields.io/npm/v/playchat.svg)](https://www.npmjs.com/package/playchat)
-[![license](https://img.shields.io/npm/l/playchat.svg)](https://github.com/doum1004/chat-in-video/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/playchat?style=flat-square&color=cb3837&logo=npm)](https://www.npmjs.com/package/playchat)
+![total downloads](https://img.shields.io/npm/dt/playchat)
+[![CI](https://img.shields.io/github/actions/workflow/status/doum1004/chat-in-video/ci.yml?branch=main&style=flat-square&label=CI&logo=github)](https://github.com/doum1004/chat-in-video/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/playchat?style=flat-square&color=blue)](./LICENSE)
+[![bun](https://img.shields.io/badge/built%20with-bun-f9f1e1?style=flat-square&logo=bun)](https://bun.sh)
+[![ko-fi](https://img.shields.io/badge/donate-Ko--fi-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/doum1004)
 
 Converts a podcast episode JSON file into a themed chat-UI video (MP4). Audio
 clips are sequenced by their measured durations and the final video is
