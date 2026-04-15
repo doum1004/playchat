@@ -599,7 +599,7 @@ async function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
+  npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 
   If --output is omitted, files go to output/<date-time>-<name>/
 
@@ -613,11 +613,11 @@ Options:
   --no-avatar     Hide avatar circles and sender names
 
 Examples:
-  npx ts-node cli.ts episode.json
-  npx ts-node cli.ts episode.json --output ./my-output --theme imessage
-  npx ts-node cli.ts episode.json --record --pause 5000
-  npx ts-node cli.ts episode.json --record --segments
-  npx ts-node cli.ts episode.json --record-full --output ./my-output --no-avatar
+  npx playchat episode.json
+  npx playchat episode.json --output ./my-output --theme imessage
+  npx playchat episode.json --record --pause 5000
+  npx playchat episode.json --record --segments
+  npx playchat episode.json --record-full --output ./my-output --no-avatar
 `);
     process.exit(0);
   }
