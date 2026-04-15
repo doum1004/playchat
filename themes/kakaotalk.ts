@@ -110,7 +110,7 @@ export class KakaoTalkTheme extends BaseTheme {
     <span class="kk-count">${this.hostCount}</span>
   </div>
   <div class="kk-body" id="chat-body">
-    <div class="date-divider"><span>April 14, 2026</span></div>
+    <div class="date-divider"><span id="chat-date"></span></div>
     <div class="section-divider"><span>${this.firstSection}</span></div>
   </div>
   <div class="kk-footer">
@@ -143,6 +143,11 @@ export class KakaoTalkTheme extends BaseTheme {
   private get js(): string {
     return `
 const body = document.getElementById('chat-body');
+(function() {
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('chat-date').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+})();
 const ME = ${JSON.stringify(this.meHostId)};
 const SHOW_AVATAR = ${this.showAvatar};
 const HOST_MAP = ${this.hostMapJSON};
