@@ -283,12 +283,19 @@ async function recordSegment(
 
     const buf = await page.screenshot({ type: "jpeg", quality: 92, clip, encoding: "binary" }) as Buffer;
     await new Promise<void>((resolve, reject) => {
-      if (!ffmpegProc.stdin.write(buf)) {
-        ffmpegProc.stdin.once("drain", resolve);
-      } else {
+      const onError = (err: Error) => reject(err);
+      ffmpegProc.stdin.once("error", onError);
+
+      const done = () => {
+        ffmpegProc.stdin.removeListener("error", onError);
         resolve();
+      };
+
+      if (!ffmpegProc.stdin.write(buf)) {
+        ffmpegProc.stdin.once("drain", done);
+      } else {
+        done();
       }
-      ffmpegProc.stdin.once("error", reject);
     });
 
     onProgress(1);
@@ -479,7 +486,15 @@ function writeManifest(outDir: string, data: Manifest) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
+function formatElapsed(ms: number): string {
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  const m = Math.floor(ms / 60_000);
+  const s = ((ms % 60_000) / 1000).toFixed(0).padStart(2, "0");
+  return `${m}m ${s}s`;
+}
+
 async function main() {
+  const startTime = Date.now();
   const args = process.argv.slice(2);
 
   if (args.includes("--help") || args.length === 0) {
@@ -561,6 +576,7 @@ Examples:
       dialogueCount: dialogues.length,
       durationEstimate: episode.duration_estimate ?? "",
     });
+    console.log(`Done  [${formatElapsed(Date.now() - startTime)}]`);
     return;
   }
 
@@ -613,7 +629,7 @@ Examples:
 
     const outW = width * SCALE;
     const outH = height * SCALE;
-    console.log(`\nDone: ${mp4Path} (${outW}x${outH})`);
+    console.log(`\nDone: ${mp4Path} (${outW}x${outH}) Elapsed [${formatElapsed(Date.now() - startTime)}]`);
 
     manifestFiles.mp4 = "output.mp4";
 
