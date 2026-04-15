@@ -218,6 +218,98 @@ async function buildTimeline(
   return timings;
 }
 
+// ── Static recorder (one screenshot per dialogue state) ───────────────────────
+
+/**
+ * Fast recording path: one Puppeteer screenshot per dialogue event, then
+ * assembled into a video with ffmpeg's concat demuxer where each image is
+ * held for exactly the duration of its audio clip (or pauseMs).
+ */
+async function recordStatic(
+  htmlPath: string,
+  width: number,
+  height: number,
+  timings: DialogueTiming[],
+  pauseMs: number,
+  silentMp4: string
+): Promise<void> {
+  const POST_AUDIO_GAP_MS = 400;
+  const TAIL_MS = 2000;
+
+  const outW = width * SCALE;
+  const outH = height * SCALE;
+  const timelineMs = timings.map((t) => t.showAtMs);
+
+  process.stdout.write(`Recording static  ${width}x${height}  ${timings.length} frames ...`);
+
+  const browser = await puppeteer.launch({
+    headless: "new" as never,
+    args: ["--no-sandbox", "--disable-web-security"],
+  });
+
+  const tmpDir = path.resolve("_static_tmp");
+  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
+  fs.mkdirSync(tmpDir);
+
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width, height, deviceScaleFactor: SCALE });
+    await page.evaluateOnNewDocument(
+      `(function(tl) { window.__TIMELINE__ = tl; })(${JSON.stringify(timelineMs)})`
+    );
+
+    const fileUrl = `file://${path.resolve(htmlPath).replace(/\\/g, "/")}?autoplay=1`;
+    await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
+    await new Promise((r) => setTimeout(r, 300));
+
+    const clip = { x: 0, y: 0, width, height };
+    const framePaths: string[] = [];
+
+    for (let i = 0; i < timings.length; i++) {
+      await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${timings[i].showAtMs})`);
+      const framePath = path.join(tmpDir, `frame_${String(i).padStart(4, "0")}.png`);
+      await page.screenshot({ type: "png", clip, path: framePath });
+      framePaths.push(framePath);
+      process.stdout.write(`\rRecording static  ${width}x${height}  ${timings.length} frames ... ${i + 1}/${timings.length}`);
+    }
+
+    // Tail frame (last state held a bit longer)
+    const tailPath = path.join(tmpDir, `frame_tail.png`);
+    fs.copyFileSync(framePaths[framePaths.length - 1], tailPath);
+
+    await page.close();
+
+    // Build ffmpeg concat file with per-frame durations
+    const concatLines: string[] = [];
+    for (let i = 0; i < timings.length; i++) {
+      const t = timings[i];
+      const holdMs = t.audioDurationMs > 0 ? t.audioDurationMs + POST_AUDIO_GAP_MS : pauseMs;
+      concatLines.push(`file '${framePaths[i].replace(/\\/g, "/")}'`);
+      concatLines.push(`duration ${(holdMs / 1000).toFixed(3)}`);
+    }
+    concatLines.push(`file '${tailPath.replace(/\\/g, "/")}'`);
+    concatLines.push(`duration ${(TAIL_MS / 1000).toFixed(3)}`);
+
+    const concatFile = path.join(tmpDir, "concat.txt");
+    fs.writeFileSync(concatFile, concatLines.join("\n"), "utf-8");
+
+    execFileSync("ffmpeg", [
+      "-y",
+      "-f", "concat", "-safe", "0",
+      "-i", concatFile,
+      "-vf", `scale=${outW}:${outH}:flags=lanczos`,
+      "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
+      "-r", String(FPS), "-vsync", "cfr",
+      silentMp4,
+    ], { stdio: "pipe" });
+
+    process.stdout.write(`\rRecording static  ${width}x${height}  ${timings.length} frames ... done\n`);
+  } finally {
+    await browser.close();
+    fs.rmSync(tmpDir, { recursive: true });
+  }
+}
+
 // ── Puppeteer recorder + encoder (parallel workers) ───────────────────────────
 
 const WORKER_COUNT = Math.min(Math.max(os.cpus().length, 2), 8);
@@ -496,14 +588,15 @@ async function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
+  npx ts-node cli.ts <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 
   If --output is omitted, files go to output/<date-time>-<name>/
 
 Options:
   --output <dir>  Output folder path
-  --record        Also produce an MP4 video (requires ffmpeg + ffprobe)
-  --segments      Also produce individual MP4 videos per section (requires --record)
+  --record        Produce an MP4 using static images (fast; one screenshot per dialogue)
+  --record-full   Produce an MP4 using full frame-by-frame recording (slow; requires more CPU)
+  --segments      Also produce individual MP4 videos per section (requires --record or --record-full)
   --theme <id>    Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
   --no-avatar     Hide avatar circles and sender names
@@ -513,7 +606,7 @@ Examples:
   npx ts-node cli.ts episode.json --output ./my-output --theme imessage
   npx ts-node cli.ts episode.json --record --pause 5000
   npx ts-node cli.ts episode.json --record --segments
-  npx ts-node cli.ts episode.json --output ./my-output --record --no-avatar
+  npx ts-node cli.ts episode.json --record-full --output ./my-output --no-avatar
 `);
     process.exit(0);
   }
@@ -523,6 +616,7 @@ Examples:
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
   const showAvatar = !args.includes("--no-avatar");
   const doRecord = args.includes("--record");
+  const doRecordFull = args.includes("--record-full");
   const doSegments = args.includes("--segments");
   const explicitOutput = parseFlag(args, "--output");
 
@@ -557,7 +651,7 @@ Examples:
 
   const manifestFiles: ManifestFiles = { html: "output.html" };
 
-  if (!doRecord) {
+  if (!doRecord && !doRecordFull) {
     writeManifest(outDir, {
       input: path.resolve(inputPath),
       theme: themeId,
@@ -599,7 +693,11 @@ Examples:
 
     const { width, height } = theme.viewport;
 
-    await recordAndEncode(htmlPath, width, height, timings, silentMp4);
+    if (doRecordFull) {
+      await recordAndEncode(htmlPath, width, height, timings, silentMp4);
+    } else {
+      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4);
+    }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
     const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);

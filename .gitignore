@@ -4,6 +4,7 @@ _frames/
 input/
 output/
 _audio_cache/
+_debug*
 *.mp4
 output*.html
 .env

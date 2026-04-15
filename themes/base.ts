@@ -97,6 +97,9 @@ function playNext() {
 function initScrubberMode(timeline) {
   var chatBody = document.getElementById('chat-body');
   if (chatBody) chatBody.style.scrollBehavior = 'auto';
+  var noAnim = document.createElement('style');
+  noAnim.textContent = '*, *::before, *::after { animation-duration: 0s !important; }';
+  document.head.appendChild(noAnim);
   var rendered = 0;
   window.__SCRUB__ = function(nowMs) {
     while (rendered < timeline.length && timeline[rendered] <= nowMs) {
