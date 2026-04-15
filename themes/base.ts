@@ -95,6 +95,8 @@ function playNext() {
  * window.__TIMELINE__ must be set (via evaluateOnNewDocument) before load.
  */
 function initScrubberMode(timeline) {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.style.scrollBehavior = 'auto';
   var rendered = 0;
   window.__SCRUB__ = function(nowMs) {
     while (rendered < timeline.length && timeline[rendered] <= nowMs) {
