@@ -49,6 +49,15 @@ export abstract class BaseTheme {
     return JSON.stringify(this.dialogues);
   }
 
+  /** The host id of the first host in the episode — treated as "me" (right side). */
+  protected get meHostId(): string {
+    return this.episode.hosts[0]?.id ?? "host_1";
+  }
+
+  protected get showAvatar(): boolean {
+    return this.options.showAvatar;
+  }
+
   /** Shared playback engine — call at the end of every theme's JS block. */
   protected get engineScript(): string {
     return `

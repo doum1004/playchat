@@ -43,10 +43,13 @@ export interface PodcastEpisode {
 export interface EngineOptions {
   /** Delay in ms before advancing to next message when no audio (default 3000) */
   pauseMs: number;
+  /** Whether to render avatar circles and sender names (default true) */
+  showAvatar: boolean;
 }
 
 export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
   pauseMs: 3000,
+  showAvatar: true,
 };
 
 export interface FlatDialogue {

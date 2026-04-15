@@ -49,7 +49,7 @@ export class KakaoTalkTheme extends BaseTheme {
   font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 500;
 }
 
-.msg-row { display: flex; align-items: flex-end; gap: 6px; margin-bottom: 2px; }
+.msg-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
 .msg-row.right { flex-direction: row-reverse; }
 
 .avatar-col { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
@@ -58,13 +58,12 @@ export class KakaoTalkTheme extends BaseTheme {
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 500;
 }
-.av-minsu  { background: #f9e000; color: #3c2e00; }
-.av-ashley { background: #ff7043; color: #fff; }
 
 .msg-col { display: flex; flex-direction: column; max-width: 68%; }
 .msg-col.right { align-items: flex-end; }
 
 .sender-name { font-size: 11px; color: rgba(0,0,0,0.55); margin-bottom: 3px; padding-left: 2px; }
+.sender-name.right { padding-left: 0; padding-right: 2px; }
 
 .bubble-wrap { display: flex; align-items: flex-end; gap: 4px; }
 .bubble-wrap.right { flex-direction: row-reverse; }
@@ -127,9 +126,26 @@ export class KakaoTalkTheme extends BaseTheme {
 
   // ── JS ──
 
+  private get hostMapJSON(): string {
+    const colors = ["#f9e000", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
+    const textColors = ["#3c2e00", "#fff", "#fff", "#fff", "#fff"];
+    const map: Record<string, { letter: string; bg: string; fg: string }> = {};
+    this.episode.hosts.forEach((h, i) => {
+      map[h.id] = {
+        letter: h.name.charAt(0),
+        bg: colors[i % colors.length],
+        fg: textColors[i % textColors.length],
+      };
+    });
+    return JSON.stringify(map);
+  }
+
   private get js(): string {
     return `
 const body = document.getElementById('chat-body');
+const ME = ${JSON.stringify(this.meHostId)};
+const SHOW_AVATAR = ${this.showAvatar};
+const HOST_MAP = ${this.hostMapJSON};
 
 function getTime() {
   const now = new Date();
@@ -140,45 +156,35 @@ function getTime() {
 }
 
 function avatarHTML(d) {
-  const cls = d.speaker === 'host_1' ? 'av-minsu' : 'av-ashley';
-  const letter = d.speaker === 'host_1' ? '민' : 'A';
-  return '<div class="avatar-col"><div class="avatar ' + cls + '">' + letter + '</div></div>';
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff' };
+  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + info.letter + '</div></div>';
 }
 
 function appendMsg(d) {
-  const isRight = d.speaker === 'host_1';
-  const t = getTime();
+  var side = d.speaker === ME ? 'right' : 'left';
+  var t = getTime();
 
   if (d.section !== lastSection) {
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.className = 'section-divider';
     div.innerHTML = '<span>' + d.section + '</span>';
     body.appendChild(div);
     lastSection = d.section;
   }
 
-  const row = document.createElement('div');
-  row.className = 'msg-row' + (isRight ? ' right' : '');
-
-  if (isRight) {
-    row.innerHTML =
-      '<div class="msg-col right">' +
-        '<div class="bubble-wrap right">' +
-          '<span class="time-stamp">' + t + '</span>' +
-          '<div class="bubble right pop">' + d.text + '</div>' +
-        '</div>' +
-      '</div>';
-  } else {
-    row.innerHTML =
-      avatarHTML(d) +
-      '<div class="msg-col">' +
-        '<div class="sender-name">' + d.name + '</div>' +
-        '<div class="bubble-wrap">' +
-          '<div class="bubble left pop">' + d.text + '</div>' +
-          '<span class="time-stamp">' + t + '</span>' +
-        '</div>' +
-      '</div>';
-  }
+  var row = document.createElement('div');
+  row.className = 'msg-row' + (side === 'right' ? ' right' : '');
+  var html = '';
+  if (SHOW_AVATAR) html += avatarHTML(d);
+  html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
+  if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  html +=
+      '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
+        '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +
+        '<span class="time-stamp">' + t + '</span>' +
+      '</div>' +
+    '</div>';
+  row.innerHTML = html;
 
   body.appendChild(row);
   body.scrollTop = body.scrollHeight;

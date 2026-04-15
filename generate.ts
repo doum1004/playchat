@@ -24,18 +24,20 @@ function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx ts-node generate.ts <input.json> [output.html] [--theme <id>] [--pause <ms>]
+  npx ts-node generate.ts <input.json> [output.html] [--theme <id>] [--pause <ms>] [--no-avatar]
 
   If output.html is omitted, files go to output/<date-time>-<name>/
 
 Options:
   --theme <id>   Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
   --pause <ms>   No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
+  --no-avatar    Hide avatar circles and sender names
 
 Examples:
   npx ts-node generate.ts episode.json
   npx ts-node generate.ts episode.json output.html --theme kakaotalk
   npx ts-node generate.ts episode.json --theme imessage --pause 5000
+  npx ts-node generate.ts episode.json --no-avatar
 `);
     process.exit(0);
   }
@@ -43,7 +45,8 @@ Examples:
   const inputPath = args[0];
   const themeId = parseFlag(args, "--theme") || "kakaotalk";
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
-  const positionalArgs = stripFlags(args, "--theme", "--pause");
+  const showAvatar = !args.includes("--no-avatar");
+  const positionalArgs = stripFlags(args, "--theme", "--pause").filter(a => a !== "--no-avatar");
   const explicitOutput = positionalArgs[1];
 
   if (!fs.existsSync(inputPath)) {
@@ -63,7 +66,7 @@ Examples:
 
   let theme;
   try {
-    theme = getTheme(themeId, episode, dialogues, { pauseMs });
+    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar });
   } catch (e: unknown) {
     console.error((e as Error).message);
     process.exit(1);

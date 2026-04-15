@@ -107,3 +107,56 @@ describe("pauseMs option", () => {
     expect(html).toContain(`setTimeout(playNext, 3000)`);
   });
 });
+
+describe("dynamic ME host", () => {
+  it("sets ME to the first host id from the episode", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues);
+      const html = theme.render();
+      expect(html).toContain(`const ME = "${fixture.hosts[0].id}"`);
+    }
+  });
+
+  it("uses a different host id when hosts[0] changes", () => {
+    const altEpisode: PodcastEpisode = {
+      ...fixture,
+      hosts: [
+        { ...fixture.hosts[1], id: "host_X" },
+        ...fixture.hosts,
+      ],
+    };
+    const altDialogues = flattenDialogues(altEpisode);
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, altEpisode, altDialogues);
+      const html = theme.render();
+      expect(html).toContain(`const ME = "host_X"`);
+    }
+  });
+});
+
+describe("showAvatar option", () => {
+  it("defaults SHOW_AVATAR to true", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues);
+      const html = theme.render();
+      expect(html).toContain("const SHOW_AVATAR = true");
+    }
+  });
+
+  it("sets SHOW_AVATAR to false when showAvatar: false", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues, { showAvatar: false });
+      const html = theme.render();
+      expect(html).toContain("const SHOW_AVATAR = false");
+    }
+  });
+
+  it("still contains appendMsg and engine when avatars hidden", () => {
+    for (const themeId of listThemes()) {
+      const theme = getTheme(themeId, fixture, dialogues, { showAvatar: false });
+      const html = theme.render();
+      expect(html).toContain("function appendMsg(d)");
+      expect(html).toContain("function playNext()");
+    }
+  });
+});

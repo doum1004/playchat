@@ -22,8 +22,8 @@ frame-perfectly synced with the audio track.
 │   ├── output.test.ts   # Output directory tests
 │   └── themes.test.ts   # Theme contract + pauseMs tests
 └── fixtures/
-    ├── episode.json     # Sample episode with real audio paths
-    └── segment_000*.mp3 # Sample audio clips
+    ├── episode.json       # Full sample episode with real audio paths
+    └── episode_short.json # Shorter fixture for quick testing
 ```
 
 ## Requirements
@@ -57,6 +57,7 @@ Both `generate.ts` and `record-device.ts` accept the same flags:
 |---|---|---|
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
+| `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
 
 ## Output Directory
 
@@ -76,6 +77,10 @@ Example: `output/20260414-143025-episode/`
 |---|---|---|
 | KakaoTalk | `kakaotalk` | 400×580 |
 | iMessage | `imessage` | 400×580 |
+
+The first host in `episode.hosts` is treated as "me" and renders on the right
+side; all other hosts render on the left. By default every message shows an
+avatar circle and sender name. Pass `--no-avatar` to hide them.
 
 ## Episode JSON Format
 
@@ -250,7 +255,7 @@ Every theme must satisfy three requirements in its JS block:
 npm test
 ```
 
-52 tests across three suites:
+57 tests across three suites:
 - `flatten.test.ts` — data interfaces, audio path normalisation
 - `output.test.ts` — output directory naming and creation
-- `themes.test.ts` — theme contract, `pauseMs` propagation
+- `themes.test.ts` — theme contract, `pauseMs` propagation, dynamic host, `showAvatar`
