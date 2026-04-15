@@ -15,9 +15,17 @@ export function resolveOutputDir(inputJsonPath: string, explicitDir?: string): s
   }
 
   // read inputJson and get "name" key value
-  const inputJson = JSON.parse(fs.readFileSync(inputJsonPath, "utf-8"));
-  const name = inputJson.name || "unknown";
-  const episode_number = inputJson.episode_number || "unknown";
+  let name = "";
+  let episode_number = "";
+  if (fs.existsSync(inputJsonPath)) {
+    const inputJson = JSON.parse(fs.readFileSync(inputJsonPath, "utf-8"));
+    name = inputJson.name || "unknown";
+    if (inputJson.episode_number)
+      episode_number = `_EP${String(inputJson.episode_number).padStart(2, "0")}`;
+  }
+  else {
+    name = path.basename(inputJsonPath, path.extname(inputJsonPath));
+  }
 
   const now = new Date();
 
@@ -29,7 +37,7 @@ export function resolveOutputDir(inputJsonPath: string, explicitDir?: string): s
   const ss = String(now.getSeconds()).padStart(2, "0");
   const timestamp = `${yyyy}${MM}${dd}-${hh}${mm}${ss}`;
 
-  const dirName = `${timestamp}-${name.replace(/\s+/g, '_')}_EP${episode_number}`;
+  const dirName = `${timestamp}-${name.replace(/\s+/g, '_')}${episode_number}`;
   const outputDir = path.resolve("output", dirName);
 
   fs.mkdirSync(outputDir, { recursive: true });

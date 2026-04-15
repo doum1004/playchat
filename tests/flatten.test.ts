@@ -15,13 +15,12 @@ describe("flattenDialogues", () => {
       0
     );
     expect(flat.length).toBe(expected);
-    expect(flat.length).toBe(6);
+    expect(flat.length).toBe(5);
   });
 
   it("propagates section (corner_name) to each dialogue", () => {
-    expect(flat[0].section).toBe("오프닝 🎙️");
-    expect(flat[3].section).toBe("공항에서 ✈️");
-    expect(flat[5].section).toBe("공항에서 ✈️");
+    expect(flat[0].section).toBe("[톡톡 인사말]");
+    expect(flat[3].section).toBe("[실전 영어 상황극]");
   });
 
   it("preserves speaker and name fields", () => {
@@ -33,7 +32,7 @@ describe("flattenDialogues", () => {
 
   it("preserves text content", () => {
     expect(flat[0].text).toContain("톡톡 영어");
-    expect(flat[3].text).toContain("passport");
+    expect(flat[3].text).toContain("옮기는데");
   });
 
   it("normalizes local audio paths to file:/// URIs", () => {

@@ -39,7 +39,8 @@ describe("resolveOutputDir (auto-generated)", () => {
   it("includes the json basename in the directory name", () => {
     const dir = resolveOutputDir("fixtures/episode.json");
     createdDirs.push(dir);
-    expect(path.basename(dir)).toContain("episode");
+    expect(path.basename(dir)).toContain("톡톡_영어");
+    expect(path.basename(dir)).toContain("EP");
   });
 
   it("includes a YYYYMMDD-HHmmss timestamp", () => {
