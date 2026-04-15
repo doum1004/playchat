@@ -367,7 +367,6 @@ async function recordAndEncode(
   if (chunks.length === 1) {
     fs.renameSync(chunks[0].seg, silentMp4);
   } else {
-    process.stdout.write("Concatenating segments ...");
     const concatList = path.join(tmpDir, "concat.txt");
     fs.writeFileSync(concatList, chunks.map((c) => `file '${c.seg.replace(/\\/g, "/")}'`).join("\n"), "utf-8");
     execFileSync("ffmpeg", [
@@ -376,7 +375,6 @@ async function recordAndEncode(
       "-c", "copy",
       silentMp4,
     ], { stdio: "pipe" });
-    process.stdout.write(" done\n");
   }
 
   fs.rmSync(tmpDir, { recursive: true });
@@ -481,7 +479,6 @@ interface Manifest {
 function writeManifest(outDir: string, data: Manifest) {
   const manifestPath = path.join(outDir, "manifest.json");
   fs.writeFileSync(manifestPath, JSON.stringify(data, null, 2), "utf-8");
-  console.log(`   Manifest:  ${manifestPath}`);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -557,11 +554,7 @@ Examples:
   const htmlPath = path.join(outDir, "output.html");
 
   fs.writeFileSync(htmlPath, theme.render(), "utf-8");
-  console.log(`Generated: ${htmlPath}`);
-  console.log(`   Theme:     ${theme.label} (${theme.id})`);
-  console.log(`   Viewport:  ${theme.viewport.width}x${theme.viewport.height}`);
-  console.log(`   Dialogues: ${dialogues.length}`);
-  console.log(`   Pause:     ${pauseMs}ms`);
+  console.log(`Generated: ${htmlPath}  [${theme.label}  ${theme.viewport.width}x${theme.viewport.height}  ${dialogues.length} dialogues]`);
 
   const manifestFiles: ManifestFiles = { html: "output.html" };
 
@@ -605,7 +598,6 @@ Examples:
     const lastTiming = timings[timings.length - 1];
     const totalMs = lastTiming.showAtMs +
       (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
-    console.log(`Timeline: ${timings.length} messages, ~${(totalMs / 1000).toFixed(1)}s`);
 
     const { width, height } = theme.viewport;
 
@@ -615,21 +607,16 @@ Examples:
     const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
 
     if (hasAudio) {
-      const audioDurSec = getAudioDurationSec(audioTrack);
-      console.log(`Sync check: video=${videoDurSec.toFixed(2)}s  audio=${audioDurSec.toFixed(2)}s  drift=${Math.abs(videoDurSec - audioDurSec).toFixed(2)}s`);
-
-      process.stdout.write("Muxing audio + video ...");
       muxVideoAudio(silentMp4, audioTrack, mp4Path);
       fs.unlinkSync(silentMp4);
       fs.unlinkSync(audioTrack);
-      process.stdout.write(" done\n");
     } else {
       fs.renameSync(silentMp4, mp4Path);
     }
 
     const outW = width * SCALE;
     const outH = height * SCALE;
-    console.log(`\nDone: ${mp4Path} (${outW}x${outH}) Elapsed [${formatElapsed(Date.now() - startTime)}]`);
+    console.log(`\nDone: ${mp4Path} (${outW}x${outH})  [${formatElapsed(Date.now() - startTime)}]`);
 
     manifestFiles.mp4 = "output.mp4";
 
@@ -658,9 +645,7 @@ Examples:
         const segFile = `section_${section.section_id}_${safeName}.mp4`;
         const segPath = path.join(segmentsDir, segFile);
 
-        process.stdout.write(`  Cutting segment: ${section.corner_name} (${(durationMs / 1000).toFixed(1)}s) ...`);
         cutSegment(mp4Path, startMs / 1000, durationMs / 1000, segPath);
-        process.stdout.write(" done\n");
 
         sectionMeta.push({
           sectionId: section.section_id,
@@ -673,6 +658,7 @@ Examples:
 
       manifestFiles.segments = sectionMeta;
       console.log(`Segments: ${sectionMeta.length} written to ${segmentsDir}`);
+
     }
 
     writeManifest(outDir, {
