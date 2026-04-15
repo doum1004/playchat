@@ -172,6 +172,27 @@ describe("manifest.json structure", () => {
     expect(data.files.mp4).toBeUndefined();
   });
 
+  it("bubble screenshots are present when recording was used", () => {
+    const manifestPath = writeTestManifest({
+      files: {
+        html: "output.html",
+        mp4: "output.mp4",
+        firstBubblePng: "first_bubble.png",
+        lastBubblePng: "last_bubble.png",
+      },
+    });
+    const data = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    expect(data.files.firstBubblePng).toBe("first_bubble.png");
+    expect(data.files.lastBubblePng).toBe("last_bubble.png");
+  });
+
+  it("bubble screenshots are absent when recording was not used", () => {
+    const manifestPath = writeTestManifest();
+    const data = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    expect(data.files.firstBubblePng).toBeUndefined();
+    expect(data.files.lastBubblePng).toBeUndefined();
+  });
+
   it("createdAt is a valid ISO 8601 date string", () => {
     const manifestPath = writeTestManifest();
     const data = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));

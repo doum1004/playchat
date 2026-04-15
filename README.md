@@ -67,7 +67,9 @@ When `--output` is omitted, files are written to:
 ```
 output/<YYYYMMDD-HHmmss>-<json-name>/
   output.html      ← rendered chat page (always)
-  output.mp4       ← final video (only with --record)
+  output.mp4       ← final video (with --record or --record-full)
+  first_bubble.png ← first message bubble frame (with --record or --record-full)
+  last_bubble.png  ← last message bubble frame (with --record or --record-full)
   manifest.json    ← run metadata and file list
 ```
 
@@ -81,7 +83,15 @@ A full example render from [`fixtures/episode.json`](./fixtures/episode.json) is
 |------|-------------|
 | [`fixtures/preview/output.html`](./fixtures/preview/output.html) | Chat UI (open in a browser) |
 | [`fixtures/preview/output.mp4`](./fixtures/preview/output.mp4) | Sample recording from `--record` (same episode) |
+| [`fixtures/preview/first_bubble.png`](./fixtures/preview/first_bubble.png) | First message bubble frame from that recording |
+| [`fixtures/preview/last_bubble.png`](./fixtures/preview/last_bubble.png) | Last message bubble frame from that recording |
 | [`fixtures/preview/manifest.json`](./fixtures/preview/manifest.json) | Run metadata for that sample |
+
+**Bubble still frames** (from the same sample `--record` run):
+
+<img src="./fixtures/preview/first_bubble.png" alt="First chat bubble still frame from sample recording" width="400">
+
+<img src="./fixtures/preview/last_bubble.png" alt="Last chat bubble still frame from sample recording" width="400">
 
 **Video preview** (recorded with `--record`, KakaoTalk theme):
 
@@ -91,7 +101,7 @@ A full example render from [`fixtures/episode.json`](./fixtures/episode.json) is
 
 [Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/preview/output.html)
 
-**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/preview/output.html` or play `fixtures/preview/output.mp4`, or regenerate into that folder:
+**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/preview/output.html`, play `fixtures/preview/output.mp4`, or inspect `fixtures/preview/first_bubble.png` and `fixtures/preview/last_bubble.png`; or regenerate into that folder:
 
 ```bash
 npx playchat fixtures/episode.json --output fixtures/preview --record
@@ -110,13 +120,15 @@ Every run writes a `manifest.json` to the output folder:
   "createdAt": "2026-04-14T20:57:14.123Z",
   "files": {
     "html": "output.html",
-    "mp4": "output.mp4"
+    "mp4": "output.mp4",
+    "firstBubblePng": "first_bubble.png",
+    "lastBubblePng": "last_bubble.png"
   },
   "dialogueCount": 5
 }
 ```
 
-`files.mp4` is only present when `--record` was used. All file paths are relative to the output folder.
+`files.mp4`, `files.firstBubblePng`, and `files.lastBubblePng` are only present when `--record` or `--record-full` was used. All file paths are relative to the output folder.
 
 ## Available Themes
 
@@ -259,6 +271,8 @@ docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playch
     └── preview/            # Sample CLI output for README preview
         ├── output.html
         ├── output.mp4     # sample --record output (tracked despite root *.mp4)
+        ├── first_bubble.png
+        ├── last_bubble.png
         └── manifest.json
 ```
 

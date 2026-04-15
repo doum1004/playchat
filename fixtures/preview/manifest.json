@@ -3,10 +3,12 @@
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-04-15T18:13:41.747Z",
+  "createdAt": "2026-04-15T18:29:58.788Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",
+    "firstBubblePng": "first_bubble.png",
+    "lastBubblePng": "last_bubble.png",
     "segments": [
       {
         "sectionId": 1,

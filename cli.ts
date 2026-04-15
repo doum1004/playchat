@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import puppeteer from "puppeteer";
+import puppeteer, { Page } from "puppeteer";
 import { execSync, execFileSync, execFile, spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
@@ -225,6 +225,11 @@ interface DialogueTiming {
   localAudioPath: string | null;
 }
 
+interface BubbleScreenshotPaths {
+  first: string;
+  last: string;
+}
+
 async function buildTimeline(
   dialogues: FlatDialogue[],
   pauseMs: number,
@@ -260,6 +265,26 @@ async function buildTimeline(
 
 // ── Static recorder (one screenshot per dialogue state) ───────────────────────
 
+async function captureFirstAndLastBubbleScreenshots(
+  page: Page,
+  width: number,
+  height: number,
+  timings: DialogueTiming[],
+  screenshots?: BubbleScreenshotPaths
+): Promise<void> {
+  if (!screenshots || timings.length === 0) return;
+
+  const clip = { x: 0, y: 0, width, height };
+  const firstMs = timings[0].showAtMs;
+  const lastMs = timings[timings.length - 1].showAtMs;
+
+  await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${firstMs})`);
+  await page.screenshot({ type: "png", clip, path: screenshots.first });
+
+  await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${lastMs})`);
+  await page.screenshot({ type: "png", clip, path: screenshots.last });
+}
+
 /**
  * Fast recording path: one Puppeteer screenshot per dialogue event, then
  * assembled into a video with ffmpeg's concat demuxer where each image is
@@ -271,7 +296,8 @@ async function recordStatic(
   height: number,
   timings: DialogueTiming[],
   pauseMs: number,
-  silentMp4: string
+  silentMp4: string,
+  screenshots?: BubbleScreenshotPaths
 ): Promise<void> {
   const POST_AUDIO_GAP_MS = 400;
   const TAIL_MS = 2000;
@@ -300,6 +326,8 @@ async function recordStatic(
     const fileUrl = `file://${path.resolve(htmlPath).replace(/\\/g, "/")}?autoplay=1`;
     await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
     await new Promise((r) => setTimeout(r, 300));
+
+    await captureFirstAndLastBubbleScreenshots(page, width, height, timings, screenshots);
 
     const clip = { x: 0, y: 0, width, height };
     const framePaths: string[] = [];
@@ -442,7 +470,8 @@ async function recordAndEncode(
   width: number,
   height: number,
   timings: DialogueTiming[],
-  silentMp4: string
+  silentMp4: string,
+  screenshots?: BubbleScreenshotPaths
 ): Promise<void> {
   const lastTiming = timings[timings.length - 1];
   const totalMs = lastTiming.showAtMs +
@@ -458,6 +487,19 @@ async function recordAndEncode(
     headless: "new" as never,
     args: ["--no-sandbox", "--disable-web-security"],
   });
+
+  if (timings.length > 0 && screenshots) {
+    const screenshotPage = await browser.newPage();
+    await screenshotPage.setViewport({ width, height, deviceScaleFactor: SCALE });
+    await screenshotPage.evaluateOnNewDocument(
+      `(function(tl) { window.__TIMELINE__ = tl; })(${JSON.stringify(timelineMs)})`
+    );
+    const fileUrl = `file://${path.resolve(htmlPath).replace(/\\/g, "/")}?autoplay=1`;
+    await screenshotPage.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
+    await new Promise((r) => setTimeout(r, 300));
+    await captureFirstAndLastBubbleScreenshots(screenshotPage, width, height, timings, screenshots);
+    await screenshotPage.close();
+  }
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "pvg_seg_"));
 
@@ -592,6 +634,8 @@ function cutSegment(sourceMp4: string, startSec: number, durationSec: number, ou
 interface ManifestFiles {
   html: string;
   mp4?: string;
+  firstBubblePng?: string;
+  lastBubblePng?: string;
   segments?: { sectionId: number; sectionTitle: string; mp4: string }[];
 }
 
@@ -744,6 +788,10 @@ Examples:
   const mp4Path = path.join(outDir, "output.mp4");
   const silentMp4 = path.join(outDir, "output_silent.mp4");
   const audioTrack = path.join(outDir, "output_audio.aac");
+  const bubbleScreenshots: BubbleScreenshotPaths = {
+    first: path.join(outDir, "first_bubble.png"),
+    last: path.join(outDir, "last_bubble.png"),
+  };
 
   try {
     const remoteAudioMap: Map<string, string> = precomputedRemoteAudioMap ?? new Map();
@@ -755,9 +803,9 @@ Examples:
     const { width, height } = theme.viewport;
 
     if (doRecordFull) {
-      await recordAndEncode(htmlPath, width, height, timings, silentMp4);
+      await recordAndEncode(htmlPath, width, height, timings, silentMp4, bubbleScreenshots);
     } else {
-      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4);
+      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots);
     }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
@@ -776,6 +824,10 @@ Examples:
     console.log(`\nDone: ${mp4Path} (${outW}x${outH}) [Elapsed: ${formatElapsed(Date.now() - startTime)}]`);
 
     manifestFiles.mp4 = "output.mp4";
+    if (timings.length > 0) {
+      manifestFiles.firstBubblePng = "first_bubble.png";
+      manifestFiles.lastBubblePng = "last_bubble.png";
+    }
 
     if (doSegments) {
       const segmentsDir = path.join(outDir, "segments");
