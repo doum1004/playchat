@@ -327,8 +327,6 @@ async function recordStatic(
     await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
     await new Promise((r) => setTimeout(r, 300));
 
-    await captureFirstAndLastBubbleScreenshots(page, width, height, timings, screenshots);
-
     const clip = { x: 0, y: 0, width, height };
     const framePaths: string[] = [];
 
@@ -343,6 +341,14 @@ async function recordStatic(
     // Tail frame (last state held a bit longer)
     const tailPath = path.join(tmpDir, `frame_tail.png`);
     fs.copyFileSync(framePaths[framePaths.length - 1], tailPath);
+
+    // Bubble thumbnails use __SCRUB__(lastMs), which exhausts the one-way scrubber.
+    // Do this only after frame capture, on a fresh navigation, so recording frames stay sequential.
+    if (screenshots && timings.length > 0) {
+      await page.goto(fileUrl, { waitUntil: "networkidle2", timeout: 30_000 });
+      await new Promise((r) => setTimeout(r, 300));
+      await captureFirstAndLastBubbleScreenshots(page, width, height, timings, screenshots);
+    }
 
     await page.close();
 
@@ -725,6 +731,14 @@ Examples:
   for (const host of episode.hosts) {
     if (!host.image) continue;
     host.image = normalizeAudioPath(host.image, inputDir);
+    if (!/^https?:\/\//i.test(host.image)) {
+      const local = toLocalPath(host.image);
+      if (local && !fs.existsSync(local)) {
+        console.warn(
+          `Warning: host avatar file missing (${host.id} / ${host.name}): ${local}`
+        );
+      }
+    }
   }
 
   // Pre-compute audio durations and stamp them on dialogues so themes can
