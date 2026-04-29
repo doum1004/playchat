@@ -8,6 +8,12 @@ export interface Host {
   id: string;
   name: string;
   image?: string;
+  /**
+   * When not `false`, assign a gender avatar from `resources/avartar`
+   * (`host_male1`, … / `host_female1`, …) before any episode `image` is used.
+   * Default: system avatars are used when files exist.
+   */
+  useSystemAvatar?: boolean;
   gender: string;
   role: string;
   lang: string;

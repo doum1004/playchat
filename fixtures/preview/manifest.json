@@ -3,24 +3,12 @@
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-04-15T18:29:58.788Z",
+  "createdAt": "2026-04-28T16:02:25.059Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",
     "firstBubblePng": "first_bubble.png",
-    "lastBubblePng": "last_bubble.png",
-    "segments": [
-      {
-        "sectionId": 1,
-        "sectionTitle": "톡톡 인사말",
-        "mp4": "segments\\section_1_.mp4"
-      },
-      {
-        "sectionId": 2,
-        "sectionTitle": "실전 영어 상황극",
-        "mp4": "segments\\section_2_.mp4"
-      }
-    ]
+    "lastBubblePng": "last_bubble.png"
   },
   "dialogueCount": 5
 }

@@ -104,7 +104,7 @@ A full example render from [`fixtures/episode.json`](./fixtures/episode.json) is
 **Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/preview/output.html`, play `fixtures/preview/output.mp4`, or inspect `fixtures/preview/first_bubble.png` and `fixtures/preview/last_bubble.png`; or regenerate into that folder:
 
 ```bash
-npx playchat fixtures/episode.json --output fixtures/preview --record
+npx playchat fixtures/episode.json --output fixtures/preview --record --segments
 ```
 
 ### manifest.json

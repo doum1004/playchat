@@ -187,11 +187,19 @@ describe("showAvatar option", () => {
 
 describe("host avatar images", () => {
   it("embeds optional host image values in theme host maps", () => {
-    expect(fixture.hosts[0].image).toBeDefined();
+    const withHostImages: PodcastEpisode = {
+      ...fixture,
+      hosts: fixture.hosts.map((h, i) => ({
+        ...h,
+        useSystemAvatar: false,
+        image: i === 0 ? "https://cdn.example.com/host-a.png" : "https://cdn.example.com/host-b.png",
+      })),
+    };
+    const d = flattenDialogues(withHostImages);
     for (const themeId of listThemes()) {
-      const theme = getTheme(themeId, fixture, dialogues);
+      const theme = getTheme(themeId, withHostImages, d);
       const html = theme.render();
-      expect(html).toContain(fixture.hosts[0].image!);
+      expect(html).toContain("https://cdn.example.com/host-a.png");
     }
   });
 
@@ -208,7 +216,7 @@ describe("host avatar images", () => {
   it("supports hosts without image by serializing empty image value", () => {
     const noImageEpisode: PodcastEpisode = {
       ...fixture,
-      hosts: fixture.hosts.map((h) => ({ ...h, image: undefined })),
+      hosts: fixture.hosts.map((h) => ({ ...h, image: undefined, useSystemAvatar: false })),
     };
     const noImageDialogues = flattenDialogues(noImageEpisode);
     for (const themeId of listThemes()) {
@@ -222,7 +230,7 @@ describe("host avatar images", () => {
     const relativeImageEpisode: PodcastEpisode = {
       ...fixture,
       hosts: fixture.hosts.map((h, i) =>
-        i === 0 ? { ...h, image: "host_1.png" } : h
+        i === 0 ? { ...h, image: "host_1.png", useSystemAvatar: false } : { ...h, useSystemAvatar: false }
       ),
     };
     const relativeImageDialogues = flattenDialogues(relativeImageEpisode);

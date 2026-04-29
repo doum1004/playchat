@@ -9,7 +9,6 @@
       {
         "id": "host_1",
         "name": "민수",
-        "image": "host_1.png",
         "gender": "male",
         "role": "learner",
         "lang": "ko",
@@ -22,7 +21,6 @@
       {
         "id": "host_2",
         "name": "Ashley",
-        "image": "host_2.png",
         "gender": "female",
         "role": "teacher",
         "lang": "en",

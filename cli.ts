@@ -10,6 +10,7 @@ import * as os from "os";
 import { PodcastEpisode, FlatDialogue, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OPTIONS } from "./core/types";
 import { resolveOutputDir } from "./core/output";
 import { collectRemoteImageUrls, applyCachedImageUris } from "./core/image-cache";
+import { applySystemHostAvatars } from "./core/system-avatar";
 import { getTheme, listThemes } from "./themes";
 
 const FPS = 15;
@@ -690,6 +691,10 @@ Options:
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
   --no-avatar     Hide avatar circles and sender names
 
+  Host profile photos default to files in resources/avartar (host_male1, host_female1, …
+  by host gender order). Set "useSystemAvatar": false on a host to use only that host's
+  "image" field instead.
+
 Examples:
   npx playchat episode.json
   npx playchat episode.json --output ./my-output --theme imessage
@@ -723,6 +728,8 @@ Examples:
     console.error(`Invalid JSON: ${inputPath}`);
     process.exit(1);
   }
+
+  applySystemHostAvatars(episode);
 
   const dialogues = flattenDialogues(episode, inputDir);
 
