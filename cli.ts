@@ -231,12 +231,33 @@ interface BubbleScreenshotPaths {
   last: string;
 }
 
+/**
+ * Check whether the episode uses a single episode-level audio file with
+ * per-dialogue time_start / time_end timestamps (instead of per-dialogue clips).
+ */
+function isEpisodeAudioMode(dialogues: FlatDialogue[]): boolean {
+  return dialogues.length > 0 && dialogues.every((d) => d.timeStartSec > 0 || d.timeEndSec > 0);
+}
+
 async function buildTimeline(
   dialogues: FlatDialogue[],
   pauseMs: number,
   remoteAudioMap: Map<string, string> = new Map()
 ): Promise<DialogueTiming[]> {
   const POST_AUDIO_GAP_MS = 400;
+
+  // ── Episode-audio mode: use time_start / time_end from the JSON ────────
+  if (isEpisodeAudioMode(dialogues)) {
+    const timings: DialogueTiming[] = [];
+    for (const d of dialogues) {
+      const showAtMs = Math.round(d.timeStartSec * 1000);
+      const audioDurationMs = Math.round((d.timeEndSec - d.timeStartSec) * 1000);
+      timings.push({ showAtMs, audioDurationMs, localAudioPath: null });
+    }
+    return timings;
+  }
+
+  // ── Per-dialogue audio mode (original behaviour) ───────────────────────
 
   // Resolve local paths for all dialogues
   const localPaths: (string | null)[] = dialogues.map((d) => {
@@ -331,6 +352,15 @@ async function recordStatic(
     const clip = { x: 0, y: 0, width, height };
     const framePaths: string[] = [];
 
+    // When the first dialogue doesn't start at 0 (e.g. episode-audio mode with
+    // intro music), capture a blank frame to cover the lead-in period.
+    const leadInMs = timings.length > 0 ? timings[0].showAtMs : 0;
+    let blankFramePath: string | null = null;
+    if (leadInMs > 0) {
+      blankFramePath = path.join(tmpDir, "frame_blank.png");
+      await page.screenshot({ type: "png", clip, path: blankFramePath });
+    }
+
     for (let i = 0; i < timings.length; i++) {
       await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${timings[i].showAtMs})`);
       const framePath = path.join(tmpDir, `frame_${String(i).padStart(4, "0")}.png`);
@@ -355,6 +385,13 @@ async function recordStatic(
 
     // Build ffmpeg concat file with per-frame durations
     const concatLines: string[] = [];
+
+    // Lead-in blank frame (intro music before first bubble)
+    if (blankFramePath && leadInMs > 0) {
+      concatLines.push(`file '${blankFramePath.replace(/\\/g, "/")}'`);
+      concatLines.push(`duration ${(leadInMs / 1000).toFixed(3)}`);
+    }
+
     for (let i = 0; i < timings.length; i++) {
       const t = timings[i];
       const holdMs = t.audioDurationMs > 0 ? t.audioDurationMs + POST_AUDIO_GAP_MS : pauseMs;
@@ -750,23 +787,33 @@ Examples:
 
   // Pre-compute audio durations and stamp them on dialogues so themes can
   // display realistic timestamps (e.g. KakaoTalk's virtual clock).
+  const useEpisodeAudio = isEpisodeAudioMode(dialogues) && !!episode.audio;
+
   if (doRecord || doRecordFull) {
-    const remoteAudioMap = await resolveRemoteAudio(dialogues);
-    const localPaths: (string | null)[] = dialogues.map((d) => {
-      const raw = d.audioRaw || d.audio;
-      if (!raw) return null;
-      if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
-      const local = toLocalPath(raw);
-      return local && fs.existsSync(local) ? local : null;
-    });
-    const durations = await Promise.all(
-      localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
-    );
-    for (let i = 0; i < dialogues.length; i++) {
-      dialogues[i].audioDurationSec = durations[i];
+    if (useEpisodeAudio) {
+      // Episode-audio mode: durations come from time_start / time_end.
+      // No need to download per-dialogue audio clips.
+      for (const d of dialogues) {
+        d.audioDurationSec = d.timeEndSec - d.timeStartSec;
+      }
+    } else {
+      const remoteAudioMap = await resolveRemoteAudio(dialogues);
+      const localPaths: (string | null)[] = dialogues.map((d) => {
+        const raw = d.audioRaw || d.audio;
+        if (!raw) return null;
+        if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
+        const local = toLocalPath(raw);
+        return local && fs.existsSync(local) ? local : null;
+      });
+      const durations = await Promise.all(
+        localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
+      );
+      for (let i = 0; i < dialogues.length; i++) {
+        dialogues[i].audioDurationSec = durations[i];
+      }
+      // Store the map so we don't re-download later
+      precomputedRemoteAudioMap = remoteAudioMap;
     }
-    // Store the map so we don't re-download later
-    precomputedRemoteAudioMap = remoteAudioMap;
 
     // Pre-download remote images and rewrite d.image to file:/// so Puppeteer
     // can load them instantly without waiting on network requests at screenshot time.
@@ -830,7 +877,31 @@ Examples:
     }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
-    const hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
+
+    // Episode-audio mode: download the single audio file and use it directly.
+    // Per-dialogue mode: build a mixed audio track from individual clips.
+    let hasAudio = false;
+    if (useEpisodeAudio) {
+      const episodeAudioUrl = episode.audio!;
+      let localEpisodeAudio: string;
+      if (/^https?:\/\//i.test(episodeAudioUrl)) {
+        localEpisodeAudio = await cachedDownload(episodeAudioUrl);
+      } else {
+        localEpisodeAudio = toLocalPath(episodeAudioUrl) ?? path.resolve(inputDir, episodeAudioUrl);
+      }
+      if (fs.existsSync(localEpisodeAudio)) {
+        // Re-encode to AAC to ensure consistent format for muxing
+        execFileSync("ffmpeg", [
+          "-y", "-i", localEpisodeAudio,
+          "-c:a", "aac", "-b:a", "192k",
+          "-ar", "44100", "-ac", "2",
+          audioTrack,
+        ], { stdio: "pipe" });
+        hasAudio = true;
+      }
+    } else {
+      hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
+    }
 
     if (hasAudio) {
       muxVideoAudio(silentMp4, audioTrack, mp4Path);

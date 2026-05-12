@@ -76,7 +76,8 @@ describe.each(listThemes())("theme: %s", (themeId) => {
 
   it("auto-starts preview playback on load", () => {
     expect(html).toContain("window.addEventListener('load'");
-    expect(html).toContain("setTimeout(function() { isPlaying = true; playNext(); }, 800);");
+    expect(html).toContain("setTimeout(function() {");
+    expect(html).toContain("isPlaying = true;");
   });
 
   it("allows disabling preview autoplay with autoplay=0", () => {

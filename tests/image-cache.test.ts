@@ -28,6 +28,8 @@ function makeDialogue(id: number, imageRaw: string): FlatDialogue {
     audioDurationSec: 0,
     image: imageRaw,
     imageRaw,
+    timeStartSec: 0,
+    timeEndSec: 0,
   };
 }
 

@@ -65,6 +65,18 @@ export abstract class BaseTheme {
     return this.options.showAvatar;
   }
 
+  /** URL of the episode-level audio file, or empty string if per-dialogue mode. */
+  protected get episodeAudioURL(): string {
+    return this.episode.audio ?? "";
+  }
+
+  /** True when dialogues use time_start / time_end with a single episode audio. */
+  protected get isEpisodeAudioMode(): boolean {
+    return !!this.episodeAudioURL &&
+      this.dialogues.length > 0 &&
+      this.dialogues.every((d) => d.timeStartSec > 0 || d.timeEndSec > 0);
+  }
+
   /** Shared playback engine — call at the end of every theme's JS block. */
   protected get engineScript(): string {
     return `
@@ -73,6 +85,45 @@ const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = ${JSON.stringify(this.firstSection)};
 const POST_AUDIO_GAP_MS = 400;
+const EPISODE_AUDIO_URL = ${JSON.stringify(this.episodeAudioURL)};
+const IS_EPISODE_AUDIO = ${this.isEpisodeAudioMode};
+
+// ── Episode-audio preview mode ──────────────────────────────────────────────
+// Plays a single audio file; shows bubbles when currentTime reaches each
+// dialogue's timeStartSec.
+
+function playEpisodeAudio() {
+  var audio = new Audio(EPISODE_AUDIO_URL);
+  var nextIdx = 0;
+  audio.addEventListener('timeupdate', function() {
+    var t = audio.currentTime;
+    while (nextIdx < TOTAL && dialogues[nextIdx].timeStartSec <= t) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    if (nextIdx >= TOTAL) {
+      document.body.dataset.done = '1';
+    }
+  });
+  audio.addEventListener('ended', function() {
+    // Flush any remaining dialogues
+    while (nextIdx < TOTAL) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    document.body.dataset.done = '1';
+  });
+  audio.onerror = function() {
+    console.warn('Episode audio failed to load, falling back to per-dialogue mode');
+    playNext();
+  };
+  audio.play().catch(function() {
+    console.warn('Episode audio play() rejected, falling back to per-dialogue mode');
+    playNext();
+  });
+}
+
+// ── Per-dialogue preview mode ───────────────────────────────────────────────
 
 function playNext() {
   if (idx >= TOTAL) {
@@ -134,7 +185,14 @@ window.addEventListener('load', function() {
   var autoplay = new URLSearchParams(location.search).get('autoplay');
   if (autoplay === '0') return;
 
-  setTimeout(function() { isPlaying = true; playNext(); }, 800);
+  setTimeout(function() {
+    isPlaying = true;
+    if (IS_EPISODE_AUDIO) {
+      playEpisodeAudio();
+    } else {
+      playNext();
+    }
+  }, 800);
 });
 `;
   }

@@ -27,6 +27,10 @@ export interface Dialogue {
   text: string;
   audio: string;
   image?: string;
+  /** Absolute time (seconds) in the episode audio where this dialogue starts */
+  time_start?: number;
+  /** Absolute time (seconds) in the episode audio where this dialogue ends */
+  time_end?: number;
 }
 
 export interface Section {
@@ -46,6 +50,8 @@ export interface PodcastEpisode {
   summary: string;
   hosts: Host[];
   sections: Section[];
+  /** Single audio file for the full episode (includes intro/outro music). */
+  audio?: string;
 }
 
 export interface EngineOptions {
@@ -74,6 +80,10 @@ export interface FlatDialogue {
   image: string;
   /** Original image value before normalization (local path, URL, or empty) */
   imageRaw: string;
+  /** Absolute start time in the episode audio (seconds). 0 if not set. */
+  timeStartSec: number;
+  /** Absolute end time in the episode audio (seconds). 0 if not set. */
+  timeEndSec: number;
 }
 
 /**
@@ -108,6 +118,8 @@ export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): Fla
         audioDurationSec: 0,
         image: normalizeAudioPath(imageRaw, baseDir),
         imageRaw,
+        timeStartSec: d.time_start ?? 0,
+        timeEndSec: d.time_end ?? 0,
       });
     }
   }
