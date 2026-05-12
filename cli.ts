@@ -46,7 +46,18 @@ function toLocalPath(audio: string): string | null {
 
 // ── Audio download cache ──────────────────────────────────────────────────────
 
-const AUDIO_CACHE_DIR = path.resolve("_audio_cache");
+function getAppCacheDir(): string {
+  const p = process.platform;
+  if (p === "win32") {
+    return path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "playchat", "cache");
+  }
+  if (p === "darwin") {
+    return path.join(os.homedir(), "Library", "Caches", "playchat");
+  }
+  return path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache"), "playchat");
+}
+
+const AUDIO_CACHE_DIR = getAppCacheDir();
 
 function cacheKeyFor(url: string): string {
   const hash = crypto.createHash("sha256").update(url).digest("hex").slice(0, 16);
