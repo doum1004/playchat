@@ -330,7 +330,8 @@ async function recordStatic(
   timings: DialogueTiming[],
   pauseMs: number,
   silentMp4: string,
-  screenshots?: BubbleScreenshotPaths
+  screenshots?: BubbleScreenshotPaths,
+  totalDurationMs?: number
 ): Promise<void> {
   const POST_AUDIO_GAP_MS = 400;
   const TAIL_MS = 2000;
@@ -403,27 +404,47 @@ async function recordStatic(
       concatLines.push(`duration ${(leadInMs / 1000).toFixed(3)}`);
     }
 
+    let accumulatedMs = leadInMs;
     for (let i = 0; i < timings.length; i++) {
       const t = timings[i];
-      const holdMs = t.audioDurationMs > 0 ? t.audioDurationMs + POST_AUDIO_GAP_MS : pauseMs;
+      // Use the gap between consecutive showAtMs values so video frames
+      // stay in sync with the actual audio timeline (episode-audio mode
+      // has varying inter-dialogue gaps, not fixed 400ms).
+      const holdMs = i < timings.length - 1
+        ? timings[i + 1].showAtMs - t.showAtMs
+        : (t.audioDurationMs > 0 ? t.audioDurationMs + POST_AUDIO_GAP_MS : pauseMs);
+      accumulatedMs += holdMs;
       concatLines.push(`file '${framePaths[i].replace(/\\/g, "/")}'`);
       concatLines.push(`duration ${(holdMs / 1000).toFixed(3)}`);
     }
+    // Tail: hold the last screenshot until the episode audio ends.
+    // We add extra padding and rely on -t to hard-cap the video to the
+    // exact target duration.
+    const effectiveTailMs = totalDurationMs != null
+      ? Math.max(TAIL_MS, totalDurationMs - accumulatedMs + TAIL_MS)
+      : TAIL_MS;
     concatLines.push(`file '${tailPath.replace(/\\/g, "/")}'`);
-    concatLines.push(`duration ${(TAIL_MS / 1000).toFixed(3)}`);
+    concatLines.push(`duration ${(effectiveTailMs / 1000).toFixed(3)}`);
+    // Repeat so ffmpeg concat honours the duration of the previous entry.
+    concatLines.push(`file '${tailPath.replace(/\\/g, "/")}'`);
 
     const concatFile = path.join(tmpDir, "concat.txt");
     fs.writeFileSync(concatFile, concatLines.join("\n"), "utf-8");
 
-    execFileSync("ffmpeg", [
+    const ffmpegArgs = [
       "-y",
       "-f", "concat", "-safe", "0",
       "-i", concatFile,
       "-vf", `scale=${outW}:${outH}:flags=lanczos`,
       "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
       "-r", String(FPS), "-vsync", "cfr",
-      silentMp4,
-    ], { stdio: "pipe" });
+    ];
+    // Hard-cap to exact target duration so the video never exceeds the audio.
+    if (totalDurationMs != null) {
+      ffmpegArgs.push("-t", (totalDurationMs / 1000).toFixed(3));
+    }
+    ffmpegArgs.push(silentMp4);
+    execFileSync("ffmpeg", ffmpegArgs, { stdio: "pipe" });
 
     process.stdout.write(`\rRecording static  ${width}x${height}  ${timings.length} frames ... done\n`);
   } finally {
@@ -526,11 +547,12 @@ async function recordAndEncode(
   height: number,
   timings: DialogueTiming[],
   silentMp4: string,
-  screenshots?: BubbleScreenshotPaths
+  screenshots?: BubbleScreenshotPaths,
+  totalDurationMs?: number
 ): Promise<void> {
   const lastTiming = timings[timings.length - 1];
-  const totalMs = lastTiming.showAtMs +
-    (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
+  const totalMs = totalDurationMs ?? (lastTiming.showAtMs +
+    (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000);
   const totalFrames = Math.min(Math.ceil((totalMs / 1000) * FPS), FPS * MAX_DURATION_SEC);
   const timelineMs = timings.map((t) => t.showAtMs);
 
@@ -666,7 +688,7 @@ function buildAudioTrack(timings: DialogueTiming[], outputAudio: string, totalDu
 function muxVideoAudio(silentMp4: string, audioTrack: string, outputMp4: string) {
   execSync(
     `ffmpeg -y -i "${silentMp4}" -i "${audioTrack}" ` +
-      `-c:v copy -c:a copy -shortest "${outputMp4}"`,
+      `-c:v copy -c:a copy "${outputMp4}"`,
     { stdio: "pipe" }
   );
 }
@@ -876,15 +898,37 @@ Examples:
     const remoteAudioMap: Map<string, string> = precomputedRemoteAudioMap ?? new Map();
     const timings = await buildTimeline(dialogues, pauseMs, remoteAudioMap);
     const lastTiming = timings[timings.length - 1];
-    const totalMs = lastTiming.showAtMs +
+    const dialogueTotalMs = lastTiming.showAtMs +
       (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
+
+    // Resolve episode audio early so we can factor its full duration
+    // (including intro/outro music) into the video track length.
+    let localEpisodeAudio: string | null = null;
+    if (useEpisodeAudio) {
+      const episodeAudioUrl = episode.audio!;
+      if (/^https?:\/\//i.test(episodeAudioUrl)) {
+        localEpisodeAudio = await cachedDownload(episodeAudioUrl);
+      } else {
+        localEpisodeAudio = toLocalPath(episodeAudioUrl) ?? path.resolve(inputDir, episodeAudioUrl);
+      }
+      if (!fs.existsSync(localEpisodeAudio)) localEpisodeAudio = null;
+    }
+
+    let totalMs = dialogueTotalMs;
+    if (localEpisodeAudio) {
+      const episodeAudioDurMs = Math.round(getAudioDurationSec(localEpisodeAudio) * 1000);
+      // Episode audio is the ground truth for total duration — don't let
+      // the inflated dialogueTotalMs (which pads +2000 and +400 per gap)
+      // override it.
+      if (episodeAudioDurMs > 0) totalMs = episodeAudioDurMs;
+    }
 
     const { width, height } = theme.viewport;
 
     if (doRecordFull) {
-      await recordAndEncode(htmlPath, width, height, timings, silentMp4, bubbleScreenshots);
+      await recordAndEncode(htmlPath, width, height, timings, silentMp4, bubbleScreenshots, totalMs);
     } else {
-      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots);
+      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots, totalMs);
     }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
@@ -892,25 +936,16 @@ Examples:
     // Episode-audio mode: download the single audio file and use it directly.
     // Per-dialogue mode: build a mixed audio track from individual clips.
     let hasAudio = false;
-    if (useEpisodeAudio) {
-      const episodeAudioUrl = episode.audio!;
-      let localEpisodeAudio: string;
-      if (/^https?:\/\//i.test(episodeAudioUrl)) {
-        localEpisodeAudio = await cachedDownload(episodeAudioUrl);
-      } else {
-        localEpisodeAudio = toLocalPath(episodeAudioUrl) ?? path.resolve(inputDir, episodeAudioUrl);
-      }
-      if (fs.existsSync(localEpisodeAudio)) {
-        // Re-encode to AAC to ensure consistent format for muxing
-        execFileSync("ffmpeg", [
-          "-y", "-i", localEpisodeAudio,
-          "-c:a", "aac", "-b:a", "192k",
-          "-ar", "44100", "-ac", "2",
-          audioTrack,
-        ], { stdio: "pipe" });
-        hasAudio = true;
-      }
-    } else {
+    if (useEpisodeAudio && localEpisodeAudio) {
+      // Re-encode to AAC to ensure consistent format for muxing
+      execFileSync("ffmpeg", [
+        "-y", "-i", localEpisodeAudio,
+        "-c:a", "aac", "-b:a", "192k",
+        "-ar", "44100", "-ac", "2",
+        audioTrack,
+      ], { stdio: "pipe" });
+      hasAudio = true;
+    } else if (!useEpisodeAudio) {
       hasAudio = buildAudioTrack(timings, audioTrack, totalMs);
     }
 
