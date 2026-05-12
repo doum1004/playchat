@@ -41,6 +41,13 @@ export interface Section {
   dialogues: Dialogue[];
 }
 
+export interface Highlight {
+  ids: number[];
+  title: string;
+  description: string;
+  tags: string[];
+}
+
 export interface PodcastEpisode {
   episode_title: string;
   episode_number: number;
@@ -52,6 +59,8 @@ export interface PodcastEpisode {
   sections: Section[];
   /** Single audio file for the full episode (includes intro/outro music). */
   audio?: string;
+  /** Optional curated highlight clips referencing dialogue IDs. */
+  highlights?: Highlight[];
 }
 
 export interface EngineOptions {

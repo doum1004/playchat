@@ -70,6 +70,7 @@ output/<YYYYMMDD-HHmmss>-<json-name>/
   output.mp4       ← final video (with --record or --record-full)
   first_bubble.png ← first message bubble frame (with --record or --record-full)
   last_bubble.png  ← last message bubble frame (with --record or --record-full)
+  highlights/      ← highlight clip MP4s (when input JSON has highlights)
   manifest.json    ← run metadata and file list
 ```
 
@@ -77,34 +78,34 @@ Example: `output/20260414-143025-name/`
 
 ### Sample output (preview)
 
-A full example render from [`fixtures/episode.json`](./fixtures/episode.json) is committed under [`fixtures/preview/`](./fixtures/preview/):
+A full example render from [`fixtures/example1/episode.json`](./fixtures/example1/episode.json) is committed under [`fixtures/example1/preview/`](./fixtures/example1/preview/):
 
 | File | Description |
 |------|-------------|
-| [`fixtures/preview/output.html`](./fixtures/preview/output.html) | Chat UI (open in a browser) |
-| [`fixtures/preview/output.mp4`](./fixtures/preview/output.mp4) | Sample recording from `--record` (same episode) |
-| [`fixtures/preview/first_bubble.png`](./fixtures/preview/first_bubble.png) | First message bubble frame from that recording |
-| [`fixtures/preview/last_bubble.png`](./fixtures/preview/last_bubble.png) | Last message bubble frame from that recording |
-| [`fixtures/preview/manifest.json`](./fixtures/preview/manifest.json) | Run metadata for that sample |
+| [`fixtures/example1/preview/output.html`](./fixtures/example1/preview/output.html) | Chat UI (open in a browser) |
+| [`fixtures/example1/preview/output.mp4`](./fixtures/example1/preview/output.mp4) | Sample recording from `--record` (same episode) |
+| [`fixtures/example1/preview/first_bubble.png`](./fixtures/example1/preview/first_bubble.png) | First message bubble frame from that recording |
+| [`fixtures/example1/preview/last_bubble.png`](./fixtures/example1/preview/last_bubble.png) | Last message bubble frame from that recording |
+| [`fixtures/example1/preview/manifest.json`](./fixtures/example1/preview/manifest.json) | Run metadata for that sample |
 
 **Bubble still frames** (from the same sample `--record` run):
 
-<img src="./fixtures/preview/first_bubble.png" alt="First chat bubble still frame from sample recording" width="400">
+<img src="./fixtures/example1/preview/first_bubble.png" alt="First chat bubble still frame from sample recording" width="400">
 
-<img src="./fixtures/preview/last_bubble.png" alt="Last chat bubble still frame from sample recording" width="400">
+<img src="./fixtures/example1/preview/last_bubble.png" alt="Last chat bubble still frame from sample recording" width="400">
 
 **Video preview** (recorded with `--record`, KakaoTalk theme):
 
-<video src="https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/preview/output.mp4" controls muted playsinline width="400"></video>
+<video src="https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/preview/output.mp4" controls muted playsinline width="400"></video>
 
 **Hosted HTML preview** (layout and remote assets; no clone required):
 
-[Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/preview/output.html)
+[Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/preview/output.html)
 
-**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/preview/output.html`, play `fixtures/preview/output.mp4`, or inspect `fixtures/preview/first_bubble.png` and `fixtures/preview/last_bubble.png`; or regenerate into that folder:
+**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/example1/preview/output.html`, play `fixtures/example1/preview/output.mp4`, or inspect `fixtures/example1/preview/first_bubble.png` and `fixtures/example1/preview/last_bubble.png`; or regenerate into that folder:
 
 ```bash
-npx playchat fixtures/episode.json --output fixtures/preview --record --segments
+npx playchat fixtures/example1/episode.json --output fixtures/example1/preview --record --segments
 ```
 
 ### manifest.json
@@ -122,13 +123,21 @@ Every run writes a `manifest.json` to the output folder:
     "html": "output.html",
     "mp4": "output.mp4",
     "firstBubblePng": "first_bubble.png",
-    "lastBubblePng": "last_bubble.png"
+    "lastBubblePng": "last_bubble.png",
+    "highlights": [
+      {
+        "title": "Highlight title",
+        "description": "Highlight description",
+        "tags": ["tag1", "tag2"],
+        "mp4": "highlights/highlight_1_title.mp4"
+      }
+    ]
   },
   "dialogueCount": 5
 }
 ```
 
-`files.mp4`, `files.firstBubblePng`, and `files.lastBubblePng` are only present when `--record` or `--record-full` was used. All file paths are relative to the output folder.
+`files.mp4`, `files.firstBubblePng`, and `files.lastBubblePng` are only present when `--record` or `--record-full` was used. `files.highlights` is only present when the input JSON contains a `highlights` array. All file paths are relative to the output folder.
 
 ## Available Themes
 
@@ -178,6 +187,14 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
         }
       ]
     }
+  ],
+  "highlights": [
+    {
+      "ids": [1, 2, 3],
+      "title": "Highlight title",
+      "description": "What makes this moment interesting",
+      "tags": ["tag1", "tag2"]
+    }
   ]
 }
 ```
@@ -185,6 +202,13 @@ avatar circle and sender name. Pass `--no-avatar` to hide them.
 `hosts[i].image` is optional. When present, the value is used as the avatar
 image in chat themes; when omitted or if loading fails, the theme falls back to
 the host's initial letter.
+
+### Highlights (optional)
+
+The top-level `highlights` array is optional. Each entry references dialogue IDs
+(`ids`) that form a highlight clip. When recording (`--record` or `--record-full`),
+the CLI automatically cuts an MP4 clip for each highlight and writes them to a
+`highlights/` subdirectory. No extra flag is needed.
 
 ### Audio paths
 
@@ -265,7 +289,7 @@ docker run --rm -v $(pwd)/input:/work/input -v $(pwd)/output:/work/output playch
 │   ├── flatten.test.ts  # Data layer + audio normalisation tests
 │   ├── output.test.ts   # Output directory tests
 │   └── themes.test.ts   # Theme contract + pauseMs tests
-└── fixtures/
+└── fixtures/example1/
     ├── episode.json       # Full sample episode with real audio paths
     ├── episode_short.json # Shorter fixture for quick testing
     └── preview/            # Sample CLI output for README preview

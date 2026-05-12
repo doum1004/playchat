@@ -714,6 +714,7 @@ interface ManifestFiles {
   firstBubblePng?: string;
   lastBubblePng?: string;
   segments?: { sectionId: number; sectionTitle: string; mp4: string }[];
+  highlights?: { title: string; description: string; tags: string[]; mp4: string }[];
 }
 
 interface Manifest {
@@ -1008,6 +1009,59 @@ Examples:
 
     }
 
+    // ── Highlight clips ────────────────────────────────────────────────────
+    if (episode.highlights?.length) {
+      const highlightsDir = path.join(outDir, "highlights");
+      fs.mkdirSync(highlightsDir, { recursive: true });
+
+      // Build dialogue id → flat index map
+      const idToIndex = new Map<number, number>();
+      let flatIdx = 0;
+      for (const section of episode.sections) {
+        for (const d of section.dialogues) {
+          idToIndex.set(d.id, flatIdx++);
+        }
+      }
+
+      const highlightMeta: { title: string; description: string; tags: string[]; mp4: string }[] = [];
+
+      for (let hi = 0; hi < episode.highlights.length; hi++) {
+        const hl = episode.highlights[hi];
+        const indices = hl.ids
+          .map((id) => idToIndex.get(id))
+          .filter((i): i is number => i !== undefined);
+        if (indices.length === 0) continue;
+
+        const firstIdx = Math.min(...indices);
+        const lastIdx = Math.max(...indices);
+        const firstTiming = timings[firstIdx];
+        const lastTiming = timings[lastIdx];
+        const startMs = firstTiming.showAtMs;
+        const endMs = lastTiming.showAtMs +
+          (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 500;
+        const durationMs = endMs - startMs;
+
+        const safeTitle = hl.title
+          .replace(/[^a-z0-9가-힣]+/gi, "_")
+          .replace(/^_|_$/g, "")
+          .substring(0, 60);
+        const hlFile = `highlight_${hi + 1}_${safeTitle}.mp4`;
+        const hlPath = path.join(highlightsDir, hlFile);
+
+        cutSegment(mp4Path, startMs / 1000, durationMs / 1000, hlPath);
+
+        highlightMeta.push({
+          title: hl.title,
+          description: hl.description,
+          tags: hl.tags,
+          mp4: path.join("highlights", hlFile),
+        });
+      }
+
+      manifestFiles.highlights = highlightMeta;
+      console.log(`Highlights: ${highlightMeta.length} clips written to ${highlightsDir}`);
+    }
+
     writeManifest(outDir, {
       input: inputAbsPath,
       theme: themeId,
@@ -1015,7 +1069,7 @@ Examples:
       showAvatar,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
-      dialogueCount: dialogues.length
+      dialogueCount: dialogues.length,
     });
   } catch (e) {
     console.error("Recording failed:", e);
