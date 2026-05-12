@@ -161,13 +161,17 @@ export class KakaoTalkTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#f9e000", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
     const textColors = ["#3c2e00", "#fff", "#fff", "#fff", "#fff"];
-    const map: Record<string, { letter: string; bg: string; fg: string; image: string }> = {};
+    const bubbleBgs = ["#f9e000", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
+    const bubbleFgs = ["#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a"];
+    const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
         letter: h.name.charAt(0),
         bg: colors[i % colors.length],
         fg: textColors[i % textColors.length],
         image: h.image ? normalizeAudioPath(h.image) : "",
+        bubbleBg: bubbleBgs[i % bubbleBgs.length],
+        bubbleFg: bubbleFgs[i % bubbleFgs.length],
       };
     });
     return JSON.stringify(map);
@@ -223,9 +227,11 @@ function appendMsg(d) {
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
   if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
-        '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
         '<span class="time-stamp">' + t + '</span>' +
       '</div>' +
     '</div>';

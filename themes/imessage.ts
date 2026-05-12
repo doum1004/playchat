@@ -139,13 +139,17 @@ export class IMessageTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
     const textColors = ["#fff", "#555", "#fff", "#fff", "#fff"];
-    const map: Record<string, { letter: string; bg: string; fg: string; image: string }> = {};
+    const bubbleBgs = ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
+    const bubbleFgs = ["#fff", "#000", "#fff", "#fff", "#fff"];
+    const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
         letter: h.name.charAt(0),
         bg: colors[i % colors.length],
         fg: textColors[i % textColors.length],
         image: h.image ? normalizeAudioPath(h.image) : "",
+        bubbleBg: bubbleBgs[i % bubbleBgs.length],
+        bubbleFg: bubbleFgs[i % bubbleFgs.length],
       };
     });
     return JSON.stringify(map);
@@ -182,9 +186,11 @@ function appendMsg(d) {
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-label' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
   if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
-        '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
         '<span class="time-stamp"></span>' +
       '</div>' +
     '</div>';
