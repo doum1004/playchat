@@ -1,0 +1,461 @@
+{
+    "lang": "ko",
+    "name": "지대토담",
+    "episode_title": "지대토담",
+    "show_name": "지대토담",
+    "show_name_full": "지적 대화를 위한 토론 담화",
+    "title": "예술은 우리를 구원하는가, 파괴하는가?",
+    "intro_music": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/d39b5caf77ab4acd/intro.wav",
+    "outro_music": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/efd3390967c64ef8/outro.wav",
+    "background_image": "background.jpg",
+    "episode_number": 7,
+    "topic": "예술의 양면성 — 구원과 파괴",
+    "subtitle": "가장 아름다운 것이 가장 잔인할 수 있다",
+    "summary": "예술이 인간을 치유하고 구원하는 힘인지, 아니면 광기와 파괴로 이끄는 독인지를 철학·과학·역사·종교의 렌즈로 격돌한다.",
+    "duration_estimate": "45분",
+    "heat_level": "🔥🔥🔥🔥",
+    "tags": [
+      "예술",
+      "미학",
+      "광기",
+      "창작",
+      "구원",
+      "파괴",
+      "아름다움",
+      "고통",
+      "카타르시스"
+    ],
+    "opening_signature": "세상 모든 주제, 네 개의 뇌로 부딪혀봅니다. 지적 대화를 위한 토론 담화, 지대토담!",
+    "closing_signature": "오늘도 결론은 못 냈습니다. 하지만 생각할 거리는 드렸죠? 지대토담이었습니다!",
+    "presenter": {
+      "id": "host_4",
+      "name": "김감성",
+      "expertise_selected": "예술",
+      "story_topic": "가장 아름다운 것이 가장 잔인할 수 있다 — 예술과 광기, 고통의 관계",
+      "story_summary": "반 고흐, 실비아 플라스, 카라바조 등 위대한 예술가들의 작품이 극심한 고통과 광기에서 탄생한 사례를 통해, 예술이 구원인지 파괴인지를 묻는다."
+    },
+    "debate_structure": {
+      "main_question": "예술은 인간을 구원하는가, 파괴하는가?",
+      "sub_questions": [
+        "고통이 없으면 위대한 예술도 없는가?",
+        "예술가의 고통을 소비하는 우리는 공범인가?",
+        "예술의 가치를 경제적·과학적으로 측정할 수 있는가?"
+      ],
+      "initial_teams": {
+        "team_a": {
+          "position": "예술은 궁극적으로 구원이다",
+          "members": [
+            "host_4",
+            "host_1"
+          ]
+        },
+        "team_b": {
+          "position": "예술은 미화된 파괴일 수 있다",
+          "members": [
+            "host_2",
+            "host_3"
+          ]
+        }
+      },
+      "team_shifts": [
+        {
+          "at_section": "round_2",
+          "description": "깡도저가 예술 시장의 착취 구조를 비판하다가, 오히려 예술이 경제적 구원이 된 사례를 발견하고 김감성 편으로 이동. 이씹덕이 고립됨.",
+          "new_formation": "3v1 (채삽질+김감성+깡도저 vs 이씹덕)"
+        },
+        {
+          "at_section": "round_3",
+          "description": "채삽질이 '구원도 파괴도 아닌 제3의 관점'을 제시하며 독자 노선. 다시 혼전 양상.",
+          "new_formation": "free-for-all"
+        }
+      ]
+    },
+    "hosts": [
+      {
+        "id": "host_1",
+        "name": "채삽질",
+        "gender": "male",
+        "image": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/0c92d76e04de4c8d/host_1.jpg",
+        "role": "host",
+        "expertise": [
+          "철학",
+          "심리학"
+        ],
+        "debate_style": "중재형 도발자",
+        "catchphrases": [
+          "근데 솔직히, 그거 니가 믿고 싶은 거 아니야?",
+          "자, 지금 세 갈래로 갈리고 있거든?",
+          "아 잠깐, 그 전제부터 좀 깔고 가자"
+        ],
+        "weakness": "현실적 데이터 앞에서 약해짐",
+        "voice_config": {
+          "voice_id": "male_low",
+          "pitch": -2,
+          "speed": 1
+        }
+      },
+      {
+        "id": "host_2",
+        "name": "이씹덕",
+        "gender": "male",
+        "image": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/e1c654a72d324894/host_2.jpg",
+        "role": "analyst",
+        "expertise": [
+          "과학",
+          "기술(IT)"
+        ],
+        "debate_style": "팩트 폭격기",
+        "catchphrases": [
+          "에이, 그건 체리피킹이지",
+          "이게 재밌는 게, 실제 데이터를 보면요—",
+          "감정 빼고 구조만 보자, 구조만"
+        ],
+        "weakness": "감성적/철학적 질문에 답 못 함",
+        "voice_config": {
+          "voice_id": "male_mid",
+          "pitch": 2,
+          "speed": 1.1
+        }
+      },
+      {
+        "id": "host_3",
+        "name": "깡도저",
+        "gender": "male",
+        "image": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/4b02ccd8f08145f4/host_3.jpg",
+        "role": "debater",
+        "expertise": [
+          "역사",
+          "경제"
+        ],
+        "debate_style": "열혈 스토리텔러",
+        "catchphrases": [
+          "이거 알면 소름인데, 진짜 들어봐",
+          "결국 인센티브 구조의 문제야",
+          "아니 그러니까! 역사를 왜 안 배워!"
+        ],
+        "weakness": "논리적 허점을 감정으로 덮으려 함",
+        "voice_config": {
+          "voice_id": "male_high",
+          "pitch": 1,
+          "speed": 1.05
+        }
+      },
+      {
+        "id": "host_4",
+        "name": "김감성",
+        "gender": "female",
+        "image": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/uploads/ae36a363-3b9a-49c8-945a-55d8af084a52/c09a95f5dc804507/host_4.jpg",
+        "role": "mediator",
+        "expertise": [
+          "종교",
+          "예술"
+        ],
+        "debate_style": "감성 저격수",
+        "catchphrases": [
+          "그게 맞는지보다, 그게 우리한테 뭘 남기는지가 중요하지 않아?",
+          "잠깐, 다들 한 발짝만 뒤로 가보자",
+          "...다 좋은데, 그래서 사람은요?"
+        ],
+        "weakness": "구체적 수치/데이터 요구에 약함",
+        "voice_config": {
+          "voice_id": "female_low",
+          "pitch": -1,
+          "speed": 0.95
+        }
+      }
+    ],
+    "sections": [
+      {
+        "section_id": 1,
+        "section_title": "오프닝 & 안부",
+        "section_type": "opening",
+        "corner_name": "[오프닝 & 안부]",
+        "section_mood": "편안함",
+        "perspectives": [
+          "일상",
+          "근황"
+        ],
+        "debate_formation": "none",
+        "duration_estimate": "4분",
+        "dialogues": [
+          {
+            "id": 1,
+            "speaker": "host_1",
+            "name": "채삽질",
+            "gender": "male",
+            "role": "host",
+            "expertise_used": "general",
+            "emotion": "반가워하며",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "세상 모든 주제, 네 개의 뇌로 부딪혀봅니다. 지적 대화를 위한 토론 담화, 줄여서 지대토담! 일곱 번째 이야기, '예술은 우리를 구원하는가, 파괴하는가?' — 지금 시작합니다!",
+            "pause_after": 1,
+            "is_hook": true,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/6b19202a8e60425b/segment_0000.mp3",
+            "time_start": 10,
+            "time_end": 23.416
+          },
+          {
+            "id": 2,
+            "speaker": "host_1",
+            "name": "채삽질",
+            "gender": "male",
+            "role": "host",
+            "expertise_used": "general",
+            "emotion": "편안하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "네, 저는 철학과 심리학 담당, 여러분의 전제를 부수는 남자 채삽질입니다. 오늘도 질문으로 괴롭혀 드리겠습니다. (하하)",
+            "pause_after": 0.5,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": true,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/be7d16e5d9834f56/segment_0001.mp3",
+            "time_start": 23.716,
+            "time_end": 32.356
+          },
+          {
+            "id": 3,
+            "speaker": "host_2",
+            "name": "이씹덕",
+            "gender": "male",
+            "role": "analyst",
+            "expertise_used": "general",
+            "emotion": "자신만만하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "과학과 기술 담당 이씹덕입니다. 오늘 주제가 예술이라고요? 솔직히 좀 긴장되는데, 팩트는 분야를 안 가리니까요. (하하)",
+            "pause_after": 0.5,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": true,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ce80d14962f64b03/segment_0002.mp3",
+            "time_start": 32.656,
+            "time_end": 39.904
+          },
+          {
+            "id": 4,
+            "speaker": "host_3",
+            "name": "깡도저",
+            "gender": "male",
+            "role": "debater",
+            "expertise_used": "general",
+            "emotion": "열정적으로",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "역사와 경제 담당 깡도저! 오늘은 예술 이야기라 좀 조용히 할까 했는데, 그게 될 리가 없잖아. (하하하)",
+            "pause_after": 0.5,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": true,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/0b4325e158f04e84/segment_0003.mp3",
+            "time_start": 40.204,
+            "time_end": 47.068
+          },
+          {
+            "id": 5,
+            "speaker": "host_4",
+            "name": "김감성",
+            "gender": "female",
+            "role": "mediator",
+            "expertise_used": "예술",
+            "emotion": "설레며",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "종교와 예술 담당 김감성입니다. 드디어 제 차례가 왔어요... 오늘은 제가 좀 많이 얘기할게요. 각오하세요. (하하)",
+            "pause_after": 0.5,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": true,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/48ea2c62a1ef4a0e/segment_0004.mp3",
+            "time_start": 47.368,
+            "time_end": 55.792
+          },
+          {
+            "id": 6,
+            "speaker": "host_3",
+            "name": "깡도저",
+            "gender": "male",
+            "role": "debater",
+            "expertise_used": "general",
+            "emotion": "장난스럽게",
+            "interrupt_type": "piggyback",
+            "overlap_with": 5,
+            "text": "오 김감성 텐션 봐, 오늘 무섭다 무서워! (하하)",
+            "pause_after": 0.3,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": true,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/8c4e7da97a3f40ec/segment_0005.mp3",
+            "time_start": 56.092,
+            "time_end": 59.548
+          },
+          {
+            "id": 7,
+            "speaker": "host_1",
+            "name": "채삽질",
+            "gender": "male",
+            "role": "host",
+            "expertise_used": "general",
+            "emotion": "편안하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "자, 근황 한 바퀴 돌까요? 나부터. 저 이번 주에 미술관 갔다 왔거든? 국립현대미술관에서 프란시스 베이컨 전시하는데, 보고 나서 밥을 못 먹었어.",
+            "pause_after": 0.5,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/610053a69e7c4b6f/segment_0006.mp3",
+            "time_start": 59.848,
+            "time_end": 71.08
+          },
+          {
+            "id": 8,
+            "speaker": "host_4",
+            "name": "김감성",
+            "gender": "female",
+            "role": "mediator",
+            "expertise_used": "예술",
+            "emotion": "놀라며",
+            "interrupt_type": "cut_in",
+            "overlap_with": 7,
+            "text": "아 프란시스 베이컨! 그 뒤틀린 인체 그림? 그거 오늘 주제랑 완전 연결되는데...",
+            "pause_after": 0.3,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4dfcdea05eec4c6b/segment_0007.mp3",
+            "time_start": 71.38,
+            "time_end": 77.956
+          }
+        ]
+      },
+      {
+        "section_id": 2,
+        "section_title": "오늘의 안주 — 가장 아름다운 것이 가장 잔인할 수 있다",
+        "section_type": "story",
+        "corner_name": "[오늘의 안주]",
+        "section_mood": "호기심",
+        "perspectives": [
+          "예술",
+          "심리학",
+          "역사"
+        ],
+        "debate_formation": "none",
+        "duration_estimate": "8분",
+        "dialogues": [
+          {
+            "id": 14,
+            "speaker": "host_4",
+            "name": "김감성",
+            "gender": "female",
+            "role": "mediator",
+            "expertise_used": "예술",
+            "emotion": "의미심장하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "자, 하나만 물어볼게요. 세상에서 가장 유명한 그림이 뭘까요?",
+            "pause_after": 1,
+            "is_hook": true,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/f45fbb6dc93245ea/segment_0008.mp3",
+            "time_start": 78.256,
+            "time_end": 83.44
+          },
+          {
+            "id": 15,
+            "speaker": "host_3",
+            "name": "깡도저",
+            "gender": "male",
+            "role": "debater",
+            "expertise_used": "general",
+            "emotion": "자신만만하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "모나리자!",
+            "pause_after": 0.2,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/7a0d6817bb454ed8/segment_0009.mp3",
+            "time_start": 83.74,
+            "time_end": 84.652
+          },
+          {
+            "id": 16,
+            "speaker": "host_2",
+            "name": "이씹덕",
+            "gender": "male",
+            "role": "analyst",
+            "expertise_used": "general",
+            "emotion": "자신만만하게",
+            "interrupt_type": "overlap",
+            "overlap_with": 15,
+            "text": "별이 빛나는 밤? 고흐?",
+            "pause_after": 0.3,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/433b3eed60d942a8/segment_0010.mp3",
+            "time_start": 84.952,
+            "time_end": 86.728
+          },
+          {
+            "id": 17,
+            "speaker": "host_4",
+            "name": "김감성",
+            "gender": "female",
+            "role": "mediator",
+            "expertise_used": "예술",
+            "emotion": "의미심장하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "씹덕이 말한 거. 빈센트 반 고흐의 '별이 빛나는 밤'. 그 그림, 언제 그려졌는지 알아요?",
+            "pause_after": 0.8,
+            "is_hook": true,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/952fd5289e4449bc/segment_0011.mp3",
+            "time_start": 87.028,
+            "time_end": 94.588
+          },
+          {
+            "id": 18,
+            "speaker": "host_1",
+            "name": "채삽질",
+            "gender": "male",
+            "role": "host",
+            "expertise_used": "general",
+            "emotion": "궁금하게",
+            "interrupt_type": "none",
+            "overlap_with": null,
+            "text": "천팔백... 팔십 몇 년?",
+            "pause_after": 0.3,
+            "is_hook": false,
+            "is_key_point": false,
+            "is_funny": false,
+            "triggers_conflict": false,
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c4d4163d329b410e/segment_0012.mp3",
+            "time_start": 94.888,
+            "time_end": 96.88
+          }
+        ]
+      }
+    ],
+    "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/584a0eef61c344c8/episode_final.mp3"
+  }

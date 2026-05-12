@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지대토담</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 400px;
+  height: 580px;
+  overflow: hidden;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.device {
+  width: 400px; height: 580px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.kk-header {
+  background: #3c1e1e;
+  padding: 12px 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.kk-back { color: #f9e000; font-size: 16px; font-weight: 500; }
+.kk-room-name {
+  color: #fff; font-size: 15px; font-weight: 500; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+}
+.kk-count { color: rgba(255,255,255,0.55); font-size: 13px; white-space: nowrap; }
+
+.kk-body {
+  background: #b2c7d9;
+  flex: 1; overflow-y: auto;
+  padding: 12px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  scroll-behavior: smooth;
+}
+
+.date-divider { text-align: center; margin: 6px 0 8px; }
+.date-divider span {
+  background: rgba(0,0,0,0.18); color: #fff;
+  font-size: 11px; padding: 3px 12px; border-radius: 20px;
+}
+
+.section-divider { text-align: center; margin: 8px 0 4px; }
+.section-divider span {
+  background: rgba(0,0,0,0.12); color: rgba(255,255,255,0.9);
+  font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 500;
+}
+
+.msg-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
+.msg-row.right { flex-direction: row-reverse; }
+
+.avatar-col { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;        /* ← key fix */
+  text-align: center;
+}
+.avatar-letter { position: relative; z-index: 1; }
+.avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
+}
+
+.msg-col { display: flex; flex-direction: column; max-width: 68%; }
+.msg-col.right { align-items: flex-end; }
+
+.sender-name { font-size: 11px; color: rgba(0,0,0,0.55); margin-bottom: 3px; padding-left: 2px; }
+.sender-name.right { padding-left: 0; padding-right: 2px; }
+
+.bubble-wrap { display: flex; align-items: flex-end; gap: 4px; }
+.bubble-wrap.right { flex-direction: row-reverse; }
+
+.bubble {
+  padding: 8px 11px; font-size: 13px; line-height: 1.5;
+  color: #1a1a1a; max-width: 100%; word-break: break-word;
+}
+.bubble.left  { background: #fff;    border-radius: 0 12px 12px 12px; }
+.bubble.right { background: #f9e000; border-radius: 12px 0 12px 12px; }
+.bubble.pop   { animation: popIn 0.2s ease-out; }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.time-stamp { font-size: 10px; color: rgba(0,0,0,0.4); white-space: nowrap; margin-bottom: 2px; }
+
+.bubble-img {
+  max-width: 100%; max-height: 200px; width: auto; display: block;
+  object-fit: cover; overflow: hidden;
+  margin-bottom: 4px;
+}
+.bubble-img.left  { border-radius: 0 12px 12px 12px; }
+.bubble-img.right { border-radius: 12px 0 12px 12px; }
+
+.kk-footer {
+  background: #f0f0f0; border-top: 0.5px solid #d0d0d0;
+  padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.kk-input {
+  flex: 1; background: #fff; border: 0.5px solid #d0d0d0;
+  border-radius: 20px; padding: 7px 14px; font-size: 13px; color: #999;
+}
+.kk-send {
+  width: 32px; height: 32px; background: #f9e000; border-radius: 50%;
+  border: none; display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="kk-header">
+    <span class="kk-back">&#8249;</span>
+    <span class="kk-room-name">지대토담</span>
+    <span class="kk-count">4</span>
+  </div>
+  <div class="kk-body" id="chat-body">
+    <div class="date-divider"><span id="chat-date"></span></div>
+    <div class="section-divider"><span>[오프닝 & 안부]</span></div>
+  </div>
+  <div class="kk-footer">
+    <div class="kk-input">Type a message</div>
+    <div class="kk-send">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M1 7L13 1L9 13L7 8L1 7Z" fill="#3c2e00"/>
+      </svg>
+    </div>
+  </div>
+</div>
+<script>
+
+const body = document.getElementById('chat-body');
+(function() {
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('chat-date').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+})();
+const ME = "host_1";
+const SHOW_AVATAR = true;
+const HOST_MAP = {"host_1":{"letter":"채","bg":"#f9e000","fg":"#3c2e00","image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/706f39dc71a92049.jpg","bubbleBg":"#f9e000","bubbleFg":"#1a1a1a"},"host_2":{"letter":"이","bg":"#ff7043","fg":"#fff","image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7f1247f998f2dc59.jpg","bubbleBg":"#fff","bubbleFg":"#1a1a1a"},"host_3":{"letter":"깡","bg":"#66bb6a","fg":"#fff","image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/03a8390c331964cb.jpg","bubbleBg":"#d4f0d4","bubbleFg":"#1a1a1a"},"host_4":{"letter":"김","bg":"#42a5f5","fg":"#fff","image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/39e22a79e7875f29.jpg","bubbleBg":"#d4e4f7","bubbleFg":"#1a1a1a"}};
+
+var _virtualClockMs = Date.now();
+function getTime(audioDurationSec) {
+  var t = new Date(_virtualClockMs);
+  var h = t.getHours(), m = t.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  var stamp = ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  if (audioDurationSec && audioDurationSec > 0) {
+    _virtualClockMs += audioDurationSec * 1000;
+  }
+  return stamp;
+}
+
+function avatarHTML(d) {
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
+  if (!info.image) return '<div class="avatar-col"><div class="avatar"></div></div>';
+  return '<div class="avatar-col"><div class="avatar"><img class="avatar-image" src="' + info.image + '" onerror="this.remove()" /></div></div>';
+}
+
+function appendMsg(d) {
+  var side = d.speaker === ME ? 'right' : 'left';
+  var t = getTime(d.audioDurationSec);
+
+  if (d.section !== lastSection) {
+    var div = document.createElement('div');
+    div.className = 'section-divider';
+    div.innerHTML = '<span>' + d.section + '</span>';
+    body.appendChild(div);
+    lastSection = d.section;
+  }
+
+  var row = document.createElement('div');
+  row.className = 'msg-row' + (side === 'right' ? ' right' : '');
+  var html = '';
+  if (SHOW_AVATAR) html += avatarHTML(d);
+  html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
+  if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
+  html +=
+      '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
+        '<span class="time-stamp">' + t + '</span>' +
+      '</div>' +
+    '</div>';
+  row.innerHTML = html;
+
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
+}
+
+
+const dialogues = [{"speaker":"host_1","name":"채삽질","text":"세상 모든 주제, 네 개의 뇌로 부딪혀봅니다. 지적 대화를 위한 토론 담화, 줄여서 지대토담! 일곱 번째 이야기, '예술은 우리를 구원하는가, 파괴하는가?' — 지금 시작합니다!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/6b19202a8e60425b/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/6b19202a8e60425b/segment_0000.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":13.416,"image":"","imageRaw":"","timeStartSec":10,"timeEndSec":23.416},{"speaker":"host_1","name":"채삽질","text":"네, 저는 철학과 심리학 담당, 여러분의 전제를 부수는 남자 채삽질입니다. 오늘도 질문으로 괴롭혀 드리겠습니다. (하하)","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/be7d16e5d9834f56/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/be7d16e5d9834f56/segment_0001.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":8.64,"image":"","imageRaw":"","timeStartSec":23.716,"timeEndSec":32.356},{"speaker":"host_2","name":"이씹덕","text":"과학과 기술 담당 이씹덕입니다. 오늘 주제가 예술이라고요? 솔직히 좀 긴장되는데, 팩트는 분야를 안 가리니까요. (하하)","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ce80d14962f64b03/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ce80d14962f64b03/segment_0002.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":7.248000000000005,"image":"","imageRaw":"","timeStartSec":32.656,"timeEndSec":39.904},{"speaker":"host_3","name":"깡도저","text":"역사와 경제 담당 깡도저! 오늘은 예술 이야기라 좀 조용히 할까 했는데, 그게 될 리가 없잖아. (하하하)","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/0b4325e158f04e84/segment_0003.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/0b4325e158f04e84/segment_0003.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":6.863999999999997,"image":"","imageRaw":"","timeStartSec":40.204,"timeEndSec":47.068},{"speaker":"host_4","name":"김감성","text":"종교와 예술 담당 김감성입니다. 드디어 제 차례가 왔어요... 오늘은 제가 좀 많이 얘기할게요. 각오하세요. (하하)","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/48ea2c62a1ef4a0e/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/48ea2c62a1ef4a0e/segment_0004.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":8.424,"image":"","imageRaw":"","timeStartSec":47.368,"timeEndSec":55.792},{"speaker":"host_3","name":"깡도저","text":"오 김감성 텐션 봐, 오늘 무섭다 무서워! (하하)","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/8c4e7da97a3f40ec/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/8c4e7da97a3f40ec/segment_0005.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":3.456000000000003,"image":"","imageRaw":"","timeStartSec":56.092,"timeEndSec":59.548},{"speaker":"host_1","name":"채삽질","text":"자, 근황 한 바퀴 돌까요? 나부터. 저 이번 주에 미술관 갔다 왔거든? 국립현대미술관에서 프란시스 베이컨 전시하는데, 보고 나서 밥을 못 먹었어.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/610053a69e7c4b6f/segment_0006.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/610053a69e7c4b6f/segment_0006.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":11.232,"image":"","imageRaw":"","timeStartSec":59.848,"timeEndSec":71.08},{"speaker":"host_4","name":"김감성","text":"아 프란시스 베이컨! 그 뒤틀린 인체 그림? 그거 오늘 주제랑 완전 연결되는데...","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4dfcdea05eec4c6b/segment_0007.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4dfcdea05eec4c6b/segment_0007.mp3","section":"[오프닝 \u0026 안부]","audioDurationSec":6.576000000000008,"image":"","imageRaw":"","timeStartSec":71.38,"timeEndSec":77.956},{"speaker":"host_4","name":"김감성","text":"자, 하나만 물어볼게요. 세상에서 가장 유명한 그림이 뭘까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/f45fbb6dc93245ea/segment_0008.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/f45fbb6dc93245ea/segment_0008.mp3","section":"[오늘의 안주]","audioDurationSec":5.1839999999999975,"image":"","imageRaw":"","timeStartSec":78.256,"timeEndSec":83.44},{"speaker":"host_3","name":"깡도저","text":"모나리자!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/7a0d6817bb454ed8/segment_0009.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/7a0d6817bb454ed8/segment_0009.mp3","section":"[오늘의 안주]","audioDurationSec":0.9120000000000061,"image":"","imageRaw":"","timeStartSec":83.74,"timeEndSec":84.652},{"speaker":"host_2","name":"이씹덕","text":"별이 빛나는 밤? 고흐?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/433b3eed60d942a8/segment_0010.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/433b3eed60d942a8/segment_0010.mp3","section":"[오늘의 안주]","audioDurationSec":1.7759999999999962,"image":"","imageRaw":"","timeStartSec":84.952,"timeEndSec":86.728},{"speaker":"host_4","name":"김감성","text":"씹덕이 말한 거. 빈센트 반 고흐의 '별이 빛나는 밤'. 그 그림, 언제 그려졌는지 알아요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/952fd5289e4449bc/segment_0011.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/952fd5289e4449bc/segment_0011.mp3","section":"[오늘의 안주]","audioDurationSec":7.559999999999988,"image":"","imageRaw":"","timeStartSec":87.028,"timeEndSec":94.588},{"speaker":"host_1","name":"채삽질","text":"천팔백... 팔십 몇 년?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c4d4163d329b410e/segment_0012.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c4d4163d329b410e/segment_0012.mp3","section":"[오늘의 안주]","audioDurationSec":1.9919999999999902,"image":"","imageRaw":"","timeStartSec":94.888,"timeEndSec":96.88}];
+const TOTAL = dialogues.length;
+let idx = 0, isPlaying = false, currentAudio = null;
+let lastSection = "[오프닝 & 안부]";
+const POST_AUDIO_GAP_MS = 400;
+const EPISODE_AUDIO_URL = "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/584a0eef61c344c8/episode_final.mp3";
+const IS_EPISODE_AUDIO = true;
+
+// ── Episode-audio preview mode ──────────────────────────────────────────────
+// Plays a single audio file; shows bubbles when currentTime reaches each
+// dialogue's timeStartSec.
+
+function playEpisodeAudio() {
+  var audio = new Audio(EPISODE_AUDIO_URL);
+  var nextIdx = 0;
+  audio.addEventListener('timeupdate', function() {
+    var t = audio.currentTime;
+    while (nextIdx < TOTAL && dialogues[nextIdx].timeStartSec <= t) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    if (nextIdx >= TOTAL) {
+      document.body.dataset.done = '1';
+    }
+  });
+  audio.addEventListener('ended', function() {
+    // Flush any remaining dialogues
+    while (nextIdx < TOTAL) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    document.body.dataset.done = '1';
+  });
+  audio.onerror = function() {
+    console.warn('Episode audio failed to load, falling back to per-dialogue mode');
+    playNext();
+  };
+  audio.play().catch(function() {
+    console.warn('Episode audio play() rejected, falling back to per-dialogue mode');
+    playNext();
+  });
+}
+
+// ── Per-dialogue preview mode ───────────────────────────────────────────────
+
+function playNext() {
+  if (idx >= TOTAL) {
+    isPlaying = false;
+    document.body.dataset.done = '1';
+    return;
+  }
+  const d = dialogues[idx];
+  appendMsg(d);
+  idx++;
+
+  if (d.audio) {
+    currentAudio = new Audio(d.audio);
+    currentAudio.onended = function() { setTimeout(playNext, POST_AUDIO_GAP_MS); };
+    currentAudio.onerror = function() { setTimeout(playNext, 2000); };
+    currentAudio.play().catch(function() { setTimeout(playNext, 2000); });
+  } else {
+    setTimeout(playNext, 3000);
+  }
+}
+
+/**
+ * Scrubber mode: the recorder is the sole clock. It calls
+ * window.__SCRUB__(frameTimeMs) before every screenshot. This function
+ * renders all messages whose showAtMs <= frameTimeMs that haven't been
+ * shown yet. No browser-side timers are used — zero drift.
+ *
+ * window.__TIMELINE__ must be set (via evaluateOnNewDocument) before load.
+ */
+function initScrubberMode(timeline) {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.style.scrollBehavior = 'auto';
+  var noAnim = document.createElement('style');
+  noAnim.textContent = '*, *::before, *::after { animation-duration: 0s !important; }';
+  document.head.appendChild(noAnim);
+  var rendered = 0;
+  window.__SCRUB__ = function(nowMs) {
+    while (
+      rendered < dialogues.length &&
+      rendered < timeline.length &&
+      timeline[rendered] <= nowMs
+    ) {
+      appendMsg(dialogues[rendered]);
+      rendered++;
+    }
+    if (rendered >= dialogues.length || rendered >= timeline.length) {
+      document.body.dataset.done = '1';
+    }
+  };
+}
+
+window.addEventListener('load', function() {
+  if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
+    initScrubberMode(window.__TIMELINE__);
+    return;
+  }
+
+  // Preview mode now auto-starts by default. Users can still opt out via ?autoplay=0.
+  var autoplay = new URLSearchParams(location.search).get('autoplay');
+  if (autoplay === '0') return;
+
+  setTimeout(function() {
+    isPlaying = true;
+    if (IS_EPISODE_AUDIO) {
+      playEpisodeAudio();
+    } else {
+      playNext();
+    }
+  }, 800);
+});
+
+</script>
+</body>
+</html>
