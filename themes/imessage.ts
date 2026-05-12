@@ -164,8 +164,8 @@ const HOST_MAP = ${this.hostMapJSON};
 
 function avatarHTML(d) {
   var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
-  var image = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
-  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '"><span class="avatar-letter">' + info.letter + '</span>' + image + '</div></div>';
+  if (!info.image) return '<div class="avatar-col"><div class="avatar"></div></div>';
+  return '<div class="avatar-col"><div class="avatar"><img class="avatar-image" src="' + info.image + '" onerror="this.remove()" /></div></div>';
 }
 
 function appendMsg(d) {
