@@ -161,7 +161,7 @@ const body = document.getElementById('chat-body');
 })();
 const ME = "host_1";
 const SHOW_AVATAR = true;
-const HOST_MAP = {"host_1":{"letter":"민","bg":"#f9e000","fg":"#3c2e00","image":"file:///C:/Workspace/Personal/playchat/resources/avartar/host_male1.png"},"host_2":{"letter":"A","bg":"#ff7043","fg":"#fff","image":"file:///C:/Workspace/Personal/playchat/resources/avartar/host_female1.png"}};
+const HOST_MAP = {"host_1":{"letter":"민","bg":"#f9e000","fg":"#3c2e00","image":"","bubbleBg":"#f9e000","bubbleFg":"#1a1a1a"},"host_2":{"letter":"A","bg":"#ff7043","fg":"#fff","image":"","bubbleBg":"#fff","bubbleFg":"#1a1a1a"}};
 
 var _virtualClockMs = Date.now();
 function getTime(audioDurationSec) {
@@ -178,8 +178,8 @@ function getTime(audioDurationSec) {
 
 function avatarHTML(d) {
   var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
-  var image = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
-  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '"><span class="avatar-letter">' + info.letter + '</span>' + image + '</div></div>';
+  if (!info.image) return '<div class="avatar-col"><div class="avatar"></div></div>';
+  return '<div class="avatar-col"><div class="avatar"><img class="avatar-image" src="' + info.image + '" onerror="this.remove()" /></div></div>';
 }
 
 function appendMsg(d) {
@@ -201,9 +201,11 @@ function appendMsg(d) {
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
   if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
-        '<div class="bubble ' + side + ' pop">' + d.text + '</div>' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
         '<span class="time-stamp">' + t + '</span>' +
       '</div>' +
     '</div>';
@@ -214,11 +216,50 @@ function appendMsg(d) {
 }
 
 
-const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":8.208,"image":"file:///C:/Workspace/Personal/playchat/_audio_cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg"},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.568,"image":"","imageRaw":""},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.664,"image":"","imageRaw":""},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":6.096,"image":"","imageRaw":""},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":3.888,"image":"","imageRaw":""}];
+const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"","imageRaw":"","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"","imageRaw":"","timeStartSec":32.3,"timeEndSec":38}];
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = "[톡톡 인사말]";
 const POST_AUDIO_GAP_MS = 400;
+const EPISODE_AUDIO_URL = "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5031974702cb4a24/episode.mp3";
+const IS_EPISODE_AUDIO = true;
+
+// ── Episode-audio preview mode ──────────────────────────────────────────────
+// Plays a single audio file; shows bubbles when currentTime reaches each
+// dialogue's timeStartSec.
+
+function playEpisodeAudio() {
+  var audio = new Audio(EPISODE_AUDIO_URL);
+  var nextIdx = 0;
+  audio.addEventListener('timeupdate', function() {
+    var t = audio.currentTime;
+    while (nextIdx < TOTAL && dialogues[nextIdx].timeStartSec <= t) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    if (nextIdx >= TOTAL) {
+      document.body.dataset.done = '1';
+    }
+  });
+  audio.addEventListener('ended', function() {
+    // Flush any remaining dialogues
+    while (nextIdx < TOTAL) {
+      appendMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    document.body.dataset.done = '1';
+  });
+  audio.onerror = function() {
+    console.warn('Episode audio failed to load, falling back to per-dialogue mode');
+    playNext();
+  };
+  audio.play().catch(function() {
+    console.warn('Episode audio play() rejected, falling back to per-dialogue mode');
+    playNext();
+  });
+}
+
+// ── Per-dialogue preview mode ───────────────────────────────────────────────
 
 function playNext() {
   if (idx >= TOTAL) {
@@ -280,7 +321,14 @@ window.addEventListener('load', function() {
   var autoplay = new URLSearchParams(location.search).get('autoplay');
   if (autoplay === '0') return;
 
-  setTimeout(function() { isPlaying = true; playNext(); }, 800);
+  setTimeout(function() {
+    isPlaying = true;
+    if (IS_EPISODE_AUDIO) {
+      playEpisodeAudio();
+    } else {
+      playNext();
+    }
+  }, 800);
 });
 
 </script>

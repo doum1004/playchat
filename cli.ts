@@ -800,32 +800,32 @@ Examples:
   // display realistic timestamps (e.g. KakaoTalk's virtual clock).
   const useEpisodeAudio = isEpisodeAudioMode(dialogues) && !!episode.audio;
 
-  if (doRecord || doRecordFull) {
-    if (useEpisodeAudio) {
-      // Episode-audio mode: durations come from time_start / time_end.
-      // No need to download per-dialogue audio clips.
-      for (const d of dialogues) {
-        d.audioDurationSec = d.timeEndSec - d.timeStartSec;
-      }
-    } else {
-      const remoteAudioMap = await resolveRemoteAudio(dialogues);
-      const localPaths: (string | null)[] = dialogues.map((d) => {
-        const raw = d.audioRaw || d.audio;
-        if (!raw) return null;
-        if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
-        const local = toLocalPath(raw);
-        return local && fs.existsSync(local) ? local : null;
-      });
-      const durations = await Promise.all(
-        localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
-      );
-      for (let i = 0; i < dialogues.length; i++) {
-        dialogues[i].audioDurationSec = durations[i];
-      }
-      // Store the map so we don't re-download later
-      precomputedRemoteAudioMap = remoteAudioMap;
+  if (useEpisodeAudio) {
+    // Episode-audio mode: durations come from time_start / time_end.
+    // No need to download per-dialogue audio clips.
+    for (const d of dialogues) {
+      d.audioDurationSec = d.timeEndSec - d.timeStartSec;
     }
+  } else {
+    const remoteAudioMap = await resolveRemoteAudio(dialogues);
+    const localPaths: (string | null)[] = dialogues.map((d) => {
+      const raw = d.audioRaw || d.audio;
+      if (!raw) return null;
+      if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
+      const local = toLocalPath(raw);
+      return local && fs.existsSync(local) ? local : null;
+    });
+    const durations = await Promise.all(
+      localPaths.map((p) => (p ? getAudioDurationSecAsync(p) : Promise.resolve(0)))
+    );
+    for (let i = 0; i < dialogues.length; i++) {
+      dialogues[i].audioDurationSec = durations[i];
+    }
+    // Store the map so we don't re-download later
+    precomputedRemoteAudioMap = remoteAudioMap;
+  }
 
+  if (doRecord || doRecordFull) {
     // Pre-download remote images and rewrite d.image to file:/// so Puppeteer
     // can load them instantly without waiting on network requests at screenshot time.
     const remoteImageMap = await resolveRemoteImages(dialogues, episode.hosts);
