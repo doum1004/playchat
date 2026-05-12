@@ -3,12 +3,38 @@
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-05-12T03:31:39.936Z",
+  "createdAt": "2026-05-12T18:00:45.270Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",
     "firstBubblePng": "first_bubble.png",
-    "lastBubblePng": "last_bubble.png"
+    "lastBubblePng": "last_bubble.png",
+    "highlights": [
+      {
+        "title": "인류 최고의 밤하늘이 탄생한 곳",
+        "description": "별이 빛나는 밤이 정신병원에서 그려졌다는 사실이 공개되는 순간, 스튜디오 전체가 숙연해진다. 가장 아름다운 것과 가장 고통스러운 것이 같은 장소에서 만났다.",
+        "tags": [
+          "고흐",
+          "예술",
+          "충격반전",
+          "감성",
+          "스토리"
+        ],
+        "mp4": "highlights\\highlight_1_인류_최고의_밤하늘이_탄생한_곳.mp4"
+      },
+      {
+        "title": "고통이 예술을 만든다는 건 신화였다?",
+        "description": "고흐의 걸작들이 가장 불안정한 시기가 아니라 치료 중 안정기에 나왔다는 반전. '예술은 고통의 산물이 아니라 탈출구'라는 통찰이 터지는 순간.",
+        "tags": [
+          "고흐",
+          "반전",
+          "통찰",
+          "예술과고통",
+          "핵심포인트"
+        ],
+        "mp4": "highlights\\highlight_2_고통이_예술을_만든다는_건_신화였다.mp4"
+      }
+    ]
   },
   "dialogueCount": 13
 }

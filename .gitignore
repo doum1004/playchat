@@ -5,6 +5,5 @@ input/
 output/
 _audio_cache/
 _debug*
-*.mp4
 .env
 .cursor/

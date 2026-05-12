@@ -1,9 +1,9 @@
 {
-  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\episode.json",
+  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\example1\\episode.json",
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-05-12T02:30:24.196Z",
+  "createdAt": "2026-05-12T18:00:19.826Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",
