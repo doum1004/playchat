@@ -3,12 +3,24 @@
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-05-12T18:00:45.270Z",
+  "createdAt": "2026-05-30T23:34:34.367Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",
     "firstBubblePng": "first_bubble.png",
     "lastBubblePng": "last_bubble.png",
+    "segments": [
+      {
+        "sectionId": 1,
+        "sectionTitle": "오프닝 & 안부",
+        "mp4": "segments\\section_1_.mp4"
+      },
+      {
+        "sectionId": 2,
+        "sectionTitle": "오늘의 안주 — 가장 아름다운 것이 가장 잔인할 수 있다",
+        "mp4": "segments\\section_2_.mp4"
+      }
+    ],
     "highlights": [
       {
         "title": "인류 최고의 밤하늘이 탄생한 곳",
