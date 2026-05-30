@@ -751,7 +751,7 @@ async function main() {
 Usage:
   npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 
-  If --output is omitted, files go to output/<date-time>-<name>/
+  If --output is omitted, files go to <input-json-dir>/output/<date-time>-<name>/
 
 Options:
   --output <dir>  Output folder path

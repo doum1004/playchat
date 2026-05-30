@@ -14,12 +14,13 @@ describe("resolveOutputDir (auto-generated)", () => {
         // ignore cleanup errors
       }
     }
-    try {
-      const outputRoot = path.resolve("output");
-      const entries = fs.readdirSync(outputRoot);
-      if (entries.length === 0) fs.rmdirSync(outputRoot);
-    } catch {
-      // ignore
+    for (const root of [path.resolve("fixtures/output"), path.resolve("data/output")]) {
+      try {
+        const entries = fs.readdirSync(root);
+        if (entries.length === 0) fs.rmdirSync(root);
+      } catch {
+        // ignore
+      }
     }
   });
 
@@ -50,10 +51,10 @@ describe("resolveOutputDir (auto-generated)", () => {
     expect(dirName).toMatch(/^\d{8}-\d{6}-/);
   });
 
-  it("lives under the output/ root", () => {
+  it("lives under the input json's output/ root", () => {
     const dir = resolveOutputDir("fixtures/episode.json");
     createdDirs.push(dir);
-    const relative = path.relative(path.resolve("output"), dir);
+    const relative = path.relative(path.resolve("fixtures/output"), dir);
     expect(relative).not.toContain("..");
   });
 

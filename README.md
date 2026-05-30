@@ -31,13 +31,13 @@ npx playchat episode.json --record
 ## Quick Start
 
 ```bash
-# HTML preview (default theme: kakaotalk, files go to output/<timestamp>-<name>/)
+# HTML preview (default theme: kakaotalk, files go to <input-json-dir>/output/<timestamp>-<name>/)
 npx playchat episode.json
 
 # HTML preview to an explicit output folder
 npx playchat episode.json --output ./my-output --theme imessage
 
-# Record to MP4 (output goes to output/<timestamp>-<name>/)
+# Record to MP4 (output goes to <input-json-dir>/output/<timestamp>-<name>/)
 npx playchat episode.json --record
 
 # Record with explicit output folder, custom theme and pause
@@ -62,10 +62,10 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 
 ## Output Directory
 
-When `--output` is omitted, files are written to:
+When `--output` is omitted, files are written next to the input JSON, under its `output/` folder:
 
 ```
-output/<YYYYMMDD-HHmmss>-<json-name>/
+<input-json-dir>/output/<YYYYMMDD-HHmmss>-<json-name>/
   output.html      ← rendered chat page (always)
   output.mp4       ← final video (with --record or --record-full)
   first_bubble.png ← first message bubble frame (with --record or --record-full)
@@ -74,38 +74,40 @@ output/<YYYYMMDD-HHmmss>-<json-name>/
   manifest.json    ← run metadata and file list
 ```
 
-Example: `output/20260414-143025-name/`
+Example: for `path/to/episode.json` → `path/to/output/20260414-143025-name/`
 
-### Sample output (preview)
+### Sample output
 
-A full example render from [`fixtures/example1/episode.json`](./fixtures/example1/episode.json) is committed under [`fixtures/example1/preview/`](./fixtures/example1/preview/):
+A full example render from [`fixtures/example1/episode.json`](./fixtures/example1/episode.json) is committed under [`fixtures/example1/output/`](./fixtures/example1/output/):
 
 | File | Description |
 |------|-------------|
-| [`fixtures/example1/preview/output.html`](./fixtures/example1/preview/output.html) | Chat UI (open in a browser) |
-| [`fixtures/example1/preview/output.mp4`](./fixtures/example1/preview/output.mp4) | Sample recording from `--record` (same episode) |
-| [`fixtures/example1/preview/first_bubble.png`](./fixtures/example1/preview/first_bubble.png) | First message bubble frame from that recording |
-| [`fixtures/example1/preview/last_bubble.png`](./fixtures/example1/preview/last_bubble.png) | Last message bubble frame from that recording |
-| [`fixtures/example1/preview/manifest.json`](./fixtures/example1/preview/manifest.json) | Run metadata for that sample |
+| [`fixtures/example1/output/output.html`](./fixtures/example1/output/output.html) | Chat UI (open in a browser) |
+| [`fixtures/example1/output/output.mp4`](./fixtures/example1/output/output.mp4) | Sample recording from `--record` (same episode) |
+| [`fixtures/example1/output/first_bubble.png`](./fixtures/example1/output/first_bubble.png) | First message bubble frame from that recording |
+| [`fixtures/example1/output/last_bubble.png`](./fixtures/example1/output/last_bubble.png) | Last message bubble frame from that recording |
+| [`fixtures/example1/output/manifest.json`](./fixtures/example1/output/manifest.json) | Run metadata for that sample |
 
 **Bubble still frames** (from the same sample `--record` run):
 
-<img src="./fixtures/example1/preview/first_bubble.png" alt="First chat bubble still frame from sample recording" width="400">
+<img src="./fixtures/example1/output/first_bubble.png" alt="First chat bubble still frame from sample recording" width="400">
 
-<img src="./fixtures/example1/preview/last_bubble.png" alt="Last chat bubble still frame from sample recording" width="400">
+<img src="./fixtures/example1/output/last_bubble.png" alt="Last chat bubble still frame from sample recording" width="400">
 
-**Video preview** (recorded with `--record`, KakaoTalk theme):
+**Video output** (recorded with `--record`, KakaoTalk theme):
 
-<video src="https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/preview/output.mp4" controls muted playsinline width="400"></video>
+<video src="https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/output/output.mp4" controls muted playsinline width="400"></video>
 
 **Hosted HTML preview** (layout and remote assets; no clone required):
 
-[Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/preview/output.html)
+[Open sample `output.html` →](https://htmlpreview.github.io/?https://raw.githubusercontent.com/doum1004/chat-in-video/main/fixtures/example1/output/output.html)
 
-**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/example1/preview/output.html`, play `fixtures/example1/preview/output.mp4`, or inspect `fixtures/example1/preview/first_bubble.png` and `fixtures/example1/preview/last_bubble.png`; or regenerate into that folder:
+**Local preview** (best match to how the CLI writes files): clone the repo and open `fixtures/example1/output/output.html`, play `fixtures/example1/output/output.mp4`, or inspect `fixtures/example1/output/first_bubble.png` and `fixtures/example1/output/last_bubble.png`; or regenerate into that folder:
 
 ```bash
-npx playchat fixtures/example1/episode.json --output fixtures/example1/preview --record --segments
+npx playchat fixtures/example1/episode.json --record --segments
+
+npx playchat fixtures/example2/episode.json --record --segments
 ```
 
 ### manifest.json

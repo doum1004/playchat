@@ -5,7 +5,7 @@ import * as path from "path";
  * Resolve the output directory.
  *
  * - If `explicitDir` is provided, creates and returns that directory.
- * - Otherwise auto-generates: output/<YYYYMMDD-HHmmss>-<json-basename>/
+ * - Otherwise auto-generates: <input-json-dir>/output/<YYYYMMDD-HHmmss>-<json-basename>/
  */
 export function resolveOutputDir(inputJsonPath: string, explicitDir?: string): string {
   if (explicitDir) {
@@ -38,7 +38,8 @@ export function resolveOutputDir(inputJsonPath: string, explicitDir?: string): s
   const timestamp = `${yyyy}${MM}${dd}-${hh}${mm}${ss}`;
 
   const dirName = `${timestamp}-${name.replace(/\s+/g, '_')}${episode_number}`;
-  const outputDir = path.resolve("output", dirName);
+  const inputDir = path.dirname(path.resolve(inputJsonPath));
+  const outputDir = path.resolve(inputDir, "output", dirName);
 
   fs.mkdirSync(outputDir, { recursive: true });
   return outputDir;
