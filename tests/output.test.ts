@@ -14,7 +14,7 @@ describe("resolveOutputDir (auto-generated)", () => {
         // ignore cleanup errors
       }
     }
-    for (const root of [path.resolve("fixtures/output"), path.resolve("data/output")]) {
+    for (const root of [path.resolve("fixtures/example1/output"), path.resolve("data/output")]) {
       try {
         const entries = fs.readdirSync(root);
         if (entries.length === 0) fs.rmdirSync(root);
@@ -25,36 +25,36 @@ describe("resolveOutputDir (auto-generated)", () => {
   });
 
   it("returns an absolute path", () => {
-    const dir = resolveOutputDir("fixtures/episode.json");
+    const dir = resolveOutputDir("fixtures/example1/episode.json");
     createdDirs.push(dir);
     expect(path.isAbsolute(dir)).toBe(true);
   });
 
   it("creates the directory", () => {
-    const dir = resolveOutputDir("fixtures/episode.json");
+    const dir = resolveOutputDir("fixtures/example1/episode.json");
     createdDirs.push(dir);
     expect(fs.existsSync(dir)).toBe(true);
     expect(fs.statSync(dir).isDirectory()).toBe(true);
   });
 
   it("includes the json basename in the directory name", () => {
-    const dir = resolveOutputDir("fixtures/episode.json");
+    const dir = resolveOutputDir("fixtures/example1/episode.json");
     createdDirs.push(dir);
     expect(path.basename(dir)).toContain("톡톡_영어");
     expect(path.basename(dir)).toContain("EP");
   });
 
   it("includes a YYYYMMDD-HHmmss timestamp", () => {
-    const dir = resolveOutputDir("fixtures/episode.json");
+    const dir = resolveOutputDir("fixtures/example1/episode.json");
     createdDirs.push(dir);
     const dirName = path.basename(dir);
     expect(dirName).toMatch(/^\d{8}-\d{6}-/);
   });
 
   it("lives under the input json's output/ root", () => {
-    const dir = resolveOutputDir("fixtures/episode.json");
+    const dir = resolveOutputDir("fixtures/example1/episode.json");
     createdDirs.push(dir);
-    const relative = path.relative(path.resolve("fixtures/output"), dir);
+    const relative = path.relative(path.resolve("fixtures/example1/output"), dir);
     expect(relative).not.toContain("..");
   });
 
@@ -80,33 +80,33 @@ describe("resolveOutputDir (explicit dir)", () => {
 
   it("returns the explicit dir as absolute path", () => {
     const explicit = path.join(tmpBase, "my-output");
-    const dir = resolveOutputDir("fixtures/episode.json", explicit);
+    const dir = resolveOutputDir("fixtures/example1/episode.json", explicit);
     expect(path.isAbsolute(dir)).toBe(true);
     expect(dir).toBe(path.resolve(explicit));
   });
 
   it("creates the explicit directory", () => {
     const explicit = path.join(tmpBase, "my-output");
-    resolveOutputDir("fixtures/episode.json", explicit);
+    resolveOutputDir("fixtures/example1/episode.json", explicit);
     expect(fs.existsSync(explicit)).toBe(true);
     expect(fs.statSync(explicit).isDirectory()).toBe(true);
   });
 
   it("creates nested explicit directories recursively", () => {
     const explicit = path.join(tmpBase, "a", "b", "c");
-    resolveOutputDir("fixtures/episode.json", explicit);
+    resolveOutputDir("fixtures/example1/episode.json", explicit);
     expect(fs.existsSync(explicit)).toBe(true);
   });
 
   it("does not use a timestamp when explicit dir is given", () => {
     const explicit = path.join(tmpBase, "my-output");
-    const dir = resolveOutputDir("fixtures/episode.json", explicit);
+    const dir = resolveOutputDir("fixtures/example1/episode.json", explicit);
     expect(path.basename(dir)).not.toMatch(/^\d{8}-\d{6}-/);
   });
 
   it("uses the exact explicit dir name regardless of input json name", () => {
     const explicit = path.join(tmpBase, "custom-name");
-    const dir = resolveOutputDir("fixtures/episode.json", explicit);
+    const dir = resolveOutputDir("fixtures/example1/episode.json", explicit);
     expect(path.basename(dir)).toBe("custom-name");
   });
 });

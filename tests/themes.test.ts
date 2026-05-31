@@ -4,7 +4,7 @@ import { PodcastEpisode, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OP
 import { getTheme, listThemes } from "../themes";
 
 const fixture: PodcastEpisode = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "../fixtures/episode.json"), "utf-8")
+  fs.readFileSync(path.resolve(__dirname, "../fixtures/example1/episode.json"), "utf-8")
 );
 const dialogues = flattenDialogues(fixture);
 
