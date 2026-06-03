@@ -88,6 +88,33 @@ const POST_AUDIO_GAP_MS = 400;
 const EPISODE_AUDIO_URL = ${JSON.stringify(this.episodeAudioURL)};
 const IS_EPISODE_AUDIO = ${this.isEpisodeAudioMode};
 
+// ── Image-aware scrolling ───────────────────────────────────────────────────
+// Bubbles are scrolled into view the moment they're appended, but images load
+// asynchronously and report height 0 until decoded. Re-scroll once each image
+// finishes so the newest content stays in view instead of being pushed below
+// the fold (which crops text and can hide the image entirely in screenshots).
+window.__imgLoaded__ = function() {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+};
+
+// Recorder hook: resolves once every <img> has finished loading (or errored).
+// The recorder awaits this before each screenshot so frames never capture a
+// half-loaded image or text cropped by a not-yet-measured image height.
+window.__IMAGES_READY__ = function() {
+  var imgs = Array.prototype.slice.call(document.images || []);
+  return Promise.all(imgs.map(function(img) {
+    if (img.complete) return null;
+    return new Promise(function(res) {
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+    });
+  })).then(function() {
+    var chatBody = document.getElementById('chat-body');
+    if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+  });
+};
+
 // ── Episode-audio preview mode ──────────────────────────────────────────────
 // Plays a single audio file; shows bubbles when currentTime reaches each
 // dialogue's timeStartSec.

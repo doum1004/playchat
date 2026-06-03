@@ -298,6 +298,18 @@ async function buildTimeline(
 
 // ── Static recorder (one screenshot per dialogue state) ───────────────────────
 
+/**
+ * Block until every <img> in the page has finished loading (or errored) and the
+ * chat has re-scrolled to account for the now-known image heights. Without this,
+ * screenshots can capture half-loaded images or text cropped by an image whose
+ * height wasn't measured yet. Falls back gracefully if the hook is missing.
+ */
+async function waitForImages(page: Page): Promise<void> {
+  await page.evaluate(
+    "window.__IMAGES_READY__ ? window.__IMAGES_READY__() : null"
+  );
+}
+
 async function captureFirstAndLastBubbleScreenshots(
   page: Page,
   width: number,
@@ -312,9 +324,11 @@ async function captureFirstAndLastBubbleScreenshots(
   const lastMs = timings[timings.length - 1].showAtMs;
 
   await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${firstMs})`);
+  await waitForImages(page);
   await page.screenshot({ type: "png", clip, path: screenshots.first });
 
   await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${lastMs})`);
+  await waitForImages(page);
   await page.screenshot({ type: "png", clip, path: screenshots.last });
 }
 
@@ -375,6 +389,7 @@ async function recordStatic(
 
     for (let i = 0; i < timings.length; i++) {
       await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${timings[i].showAtMs})`);
+      await waitForImages(page);
       const framePath = path.join(tmpDir, `frame_${String(i).padStart(4, "0")}.png`);
       await page.screenshot({ type: "png", clip, path: framePath });
       framePaths.push(framePath);
@@ -515,6 +530,7 @@ async function recordSegment(
   for (let frame = startFrame; frame < endFrame; frame++) {
     const frameTimeMs = Math.round((frame / FPS) * 1000);
     await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${frameTimeMs})`);
+    await waitForImages(page);
 
     const buf = await page.screenshot({ type: "jpeg", quality: 92, clip, encoding: "binary" }) as Buffer;
     await new Promise<void>((resolve, reject) => {
@@ -751,7 +767,7 @@ async function main() {
 Usage:
   npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
 
-  If --output is omitted, files go to <input-json-dir>/output/<date-time>-<name>/
+  If --output is omitted, files go to <input-json-dir>/output/
 
 Options:
   --output <dir>  Output folder path

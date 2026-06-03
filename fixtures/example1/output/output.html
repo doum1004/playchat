@@ -201,7 +201,7 @@ function appendMsg(d) {
   if (SHOW_AVATAR) html += avatarHTML(d);
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
-  if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onerror="this.remove()" />';
+  if (d.image) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
   var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
   var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
@@ -217,13 +217,40 @@ function appendMsg(d) {
 }
 
 
-const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"","imageRaw":"","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"","imageRaw":"","timeStartSec":32.3,"timeEndSec":38}];
+const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"","imageRaw":"","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","timeStartSec":32.3,"timeEndSec":38}];
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = "[톡톡 인사말]";
 const POST_AUDIO_GAP_MS = 400;
 const EPISODE_AUDIO_URL = "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5031974702cb4a24/episode.mp3";
 const IS_EPISODE_AUDIO = true;
+
+// ── Image-aware scrolling ───────────────────────────────────────────────────
+// Bubbles are scrolled into view the moment they're appended, but images load
+// asynchronously and report height 0 until decoded. Re-scroll once each image
+// finishes so the newest content stays in view instead of being pushed below
+// the fold (which crops text and can hide the image entirely in screenshots).
+window.__imgLoaded__ = function() {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+};
+
+// Recorder hook: resolves once every <img> has finished loading (or errored).
+// The recorder awaits this before each screenshot so frames never capture a
+// half-loaded image or text cropped by a not-yet-measured image height.
+window.__IMAGES_READY__ = function() {
+  var imgs = Array.prototype.slice.call(document.images || []);
+  return Promise.all(imgs.map(function(img) {
+    if (img.complete) return null;
+    return new Promise(function(res) {
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+    });
+  })).then(function() {
+    var chatBody = document.getElementById('chat-body');
+    if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+  });
+};
 
 // ── Episode-audio preview mode ──────────────────────────────────────────────
 // Plays a single audio file; shows bubbles when currentTime reaches each
