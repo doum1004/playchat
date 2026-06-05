@@ -4,66 +4,47 @@ import * as os from "os";
 import { resolveOutputDir } from "../core/output";
 
 describe("resolveOutputDir (auto-generated)", () => {
-  const createdDirs: string[] = [];
+  // Use a throwaway temp directory so we never touch committed fixtures
+  // (the auto-generated output dir is the one we clean up here).
+  let tmpBase: string;
+  let inputJson: string;
 
-  afterAll(() => {
-    for (const dir of createdDirs) {
-      try {
-        fs.rmSync(dir, { recursive: true });
-      } catch {
-        // ignore cleanup errors
-      }
-    }
-    for (const root of [path.resolve("fixtures/example1/output"), path.resolve("data/output")]) {
-      try {
-        const entries = fs.readdirSync(root);
-        if (entries.length === 0) fs.rmdirSync(root);
-      } catch {
-        // ignore
-      }
-    }
+  beforeEach(() => {
+    tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), "playchat-auto-"));
+    inputJson = path.join(tmpBase, "episode.json");
+    fs.writeFileSync(inputJson, "{}", "utf-8");
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpBase, { recursive: true }); } catch { /* ignore */ }
   });
 
   it("returns an absolute path", () => {
-    const dir = resolveOutputDir("fixtures/example1/episode.json");
-    createdDirs.push(dir);
+    const dir = resolveOutputDir(inputJson);
     expect(path.isAbsolute(dir)).toBe(true);
   });
 
   it("creates the directory", () => {
-    const dir = resolveOutputDir("fixtures/example1/episode.json");
-    createdDirs.push(dir);
+    const dir = resolveOutputDir(inputJson);
     expect(fs.existsSync(dir)).toBe(true);
     expect(fs.statSync(dir).isDirectory()).toBe(true);
   });
 
-  it("includes the json basename in the directory name", () => {
-    const dir = resolveOutputDir("fixtures/example1/episode.json");
-    createdDirs.push(dir);
-    expect(path.basename(dir)).toContain("톡톡_영어");
-    expect(path.basename(dir)).toContain("EP");
+  it("uses an 'output' directory next to the input json", () => {
+    const dir = resolveOutputDir(inputJson);
+    expect(path.basename(dir)).toBe("output");
   });
 
-  it("includes a YYYYMMDD-HHmmss timestamp", () => {
-    const dir = resolveOutputDir("fixtures/example1/episode.json");
-    createdDirs.push(dir);
-    const dirName = path.basename(dir);
-    expect(dirName).toMatch(/^\d{8}-\d{6}-/);
+  it("lives under the input json's directory", () => {
+    const dir = resolveOutputDir(inputJson);
+    expect(dir).toBe(path.resolve(tmpBase, "output"));
   });
 
-  it("lives under the input json's output/ root", () => {
-    const dir = resolveOutputDir("fixtures/example1/episode.json");
-    createdDirs.push(dir);
-    const relative = path.relative(path.resolve("fixtures/example1/output"), dir);
-    expect(relative).not.toContain("..");
-  });
-
-  it("strips file extension from basename", () => {
-    const dir = resolveOutputDir("data/my-podcast.json");
-    createdDirs.push(dir);
-    const dirName = path.basename(dir);
-    expect(dirName).toContain("my-podcast");
-    expect(dirName).not.toContain(".json");
+  it("places output next to the input json regardless of json name", () => {
+    const named = path.join(tmpBase, "my-podcast.json");
+    fs.writeFileSync(named, "{}", "utf-8");
+    const dir = resolveOutputDir(named);
+    expect(dir).toBe(path.resolve(tmpBase, "output"));
   });
 });
 
