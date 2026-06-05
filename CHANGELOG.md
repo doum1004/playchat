@@ -2,6 +2,36 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.0.2 — 2026-06-05
+
+### Changes
+
+- Refactor output directory tests to use temporary directories and simplify cleanup logic (3799d66)
+- Add output files and update HTML structure for episode 2 (fd43fec)
+- Update test fixtures to use example1 directory for episode.json (9e0cc09)
+- Add new output files and manifest for example2; remove unused preview images (300e973)
+- Update output directory structure in README, CLI, and output resolution logic (bba7ea3)
+- Update preview assets and manifest for example fixtures, including new segments and highlights (4bb929a)
+- Refactor avatarHTML function to enhance avatar display with background and letter support (38af9ed)
+- Remove unused .gitkeep file from avatar resources (8b3d761)
+- Add highlights feature to episode metadata and update related assets (bfec769)
+- Add highlights feature to episode metadata and processing (3e4c333)
+- Add episode details and preview assets (8186279)
+- Enhance video recording logic to support total duration management and improve audio synchronization (9859082)
+- move example (20802a2)
+- Refactor audio playback logic to streamline episode audio handling and improve dialogue timing (079eafc)
+- Refactor audio cache directory logic for cross-platform compatibility (a6e1cc0)
+- Remove unused avatar images and update avatar rendering logic in iMessage and KakaoTalk themes (bb553e1)
+- Add bubble background and foreground color support for hosts in iMessage and KakaoTalk themes (ddf11d0)
+- Add episode audio support: implement time_start and time_end for dialogues and update playback logic (8621165)
+- Add system avatar support for hosts: implement avatar assignment based on gender and include related tests (52f0653)
+- Refactor static recording flow: delay bubble screenshot capture until after frame capture for sequential recording (3f9551e)
+
+**Full diff:** [v1.0.1...v1.0.2](https://github.com/doum1004/playchat/compare/v1.0.1...v1.0.2)
+
+---
+
+
 ## v1.0.1 — 2026-04-15
 
 ### Changes
