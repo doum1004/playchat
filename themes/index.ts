@@ -1,6 +1,7 @@
 import { BaseTheme } from "./base";
 import { KakaoTalkTheme } from "./kakaotalk";
 import { IMessageTheme } from "./imessage";
+import { WeChatTheme } from "./wechat";
 
 import { PodcastEpisode, FlatDialogue, EngineOptions } from "../core/types";
 
@@ -13,6 +14,7 @@ type ThemeConstructor = new (
 const registry: Record<string, ThemeConstructor> = {
   kakaotalk: KakaoTalkTheme,
   imessage: IMessageTheme,
+  wechat: WeChatTheme,
 };
 
 export function getTheme(

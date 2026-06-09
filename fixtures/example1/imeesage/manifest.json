@@ -1,0 +1,26 @@
+{
+  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\example1\\episode.json",
+  "theme": "imessage",
+  "pauseMs": 3000,
+  "showAvatar": true,
+  "createdAt": "2026-06-09T14:45:43.478Z",
+  "files": {
+    "html": "output.html",
+    "mp4": "output.mp4",
+    "firstBubblePng": "first_bubble.png",
+    "lastBubblePng": "last_bubble.png",
+    "segments": [
+      {
+        "sectionId": 1,
+        "sectionTitle": "톡톡 인사말",
+        "mp4": "segments\\section_1_.mp4"
+      },
+      {
+        "sectionId": 2,
+        "sectionTitle": "실전 영어 상황극",
+        "mp4": "segments\\section_2_.mp4"
+      }
+    ]
+  },
+  "dialogueCount": 5
+}
