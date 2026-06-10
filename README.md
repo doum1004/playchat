@@ -108,6 +108,12 @@ A full example render from [`fixtures/example1/episode.json`](./fixtures/example
 npx playchat fixtures/example1/episode.json --record --segments
 
 npx playchat fixtures/example2/episode.json --record --segments
+
+npx playchat fixtures/example1/episode.json --record --segments --theme kakaotalk --output fixtures/example1/kakaotalk
+
+npx playchat fixtures/example1/episode.json --record --segments --theme imessage --output fixtures/example1/imeesage
+
+npx playchat fixtures/example1/episode.json --record --segments --theme wechat --output fixtures/example1/wechat
 ```
 
 ### manifest.json
@@ -143,10 +149,14 @@ Every run writes a `manifest.json` to the output folder:
 
 ## Available Themes
 
-| Theme | ID | Viewport |
+All themes render at a **9:16** aspect ratio and export to **1080×1920 (Full HD)**
+(540×960 logical viewport captured at 2× scale).
+
+| Theme | ID | Output |
 |---|---|---|
-| KakaoTalk | `kakaotalk` | 400×580 |
-| iMessage | `imessage` | 400×580 |
+| KakaoTalk | `kakaotalk` | 1080×1920 (9:16) |
+| iMessage | `imessage` | 1080×1920 (9:16) |
+| WeChat | `wechat` | 1080×1920 (9:16) |
 
 The first host in `episode.hosts` is treated as "me" and renders on the right
 side; all other hosts render on the left. By default every message shows an

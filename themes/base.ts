@@ -6,6 +6,12 @@ export interface ThemeConfig {
 }
 
 /**
+ * Shared 9:16 logical viewport for every theme.
+ * Recording captures at deviceScaleFactor 2, so output = 1080×1920 (Full HD).
+ */
+export const THEME_VIEWPORT: ThemeConfig = { width: 540, height: 960 };
+
+/**
  * Abstract base for all chat themes.
  *
  * Theme contract — every subclass must provide:
@@ -28,8 +34,10 @@ export abstract class BaseTheme {
 
   abstract get id(): string;
   abstract get label(): string;
-  abstract get viewport(): ThemeConfig;
   abstract render(): string;
+
+  /** 9:16 viewport shared by all themes (1080×1920 after 2× scale). */
+  get viewport(): ThemeConfig { return THEME_VIEWPORT; }
 
   // ── Shared helpers ──
 
