@@ -47,7 +47,7 @@ npx playchat episode.json --output ./my-output --record --theme kakaotalk --paus
 ## CLI Options
 
 ```
-npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
+npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar] [--no-bottom]
 ```
 
 | Flag | Default | Description |
@@ -59,6 +59,7 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
+| `--no-bottom` | _(off)_ | Hide the bottom show-name band (shown by default) |
 
 ## Output Directory
 
@@ -126,6 +127,7 @@ Every run writes a `manifest.json` to the output folder:
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
+  "showBottomBand": true,
   "createdAt": "2026-04-14T20:57:14.123Z",
   "files": {
     "html": "output.html",
@@ -161,6 +163,20 @@ All themes render at a **9:16** aspect ratio and export to **1080×1920 (Full HD
 The first host in `episode.hosts` is treated as "me" and renders on the right
 side; all other hosts render on the left. By default every message shows an
 avatar circle and sender name. Pass `--no-avatar` to hide them.
+
+### Bottom show-name band
+
+Because the output is a vertical 9:16 video, most platforms (YouTube Shorts,
+TikTok) overlay their own metadata UI — caption, username, action buttons — across
+the **bottom** of the frame, which would otherwise cover the lowest chat content.
+
+To keep the conversation clear of that overlay zone, a band is reserved at the
+bottom of the frame (12% of the video height) and filled with the episode's
+`name` field, centered. This both pushes the chat content up out of the overlay
+zone and doubles as branding.
+
+The band is shown by default. It is omitted automatically when the episode JSON
+has no `name`, and can be disabled explicitly with `--no-bottom`.
 
 ## Episode JSON Format
 

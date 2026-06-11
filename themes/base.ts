@@ -73,6 +73,28 @@ export abstract class BaseTheme {
     return this.options.showAvatar;
   }
 
+  // ── Bottom branding band ──
+  // A reserved strip at the bottom of the 9:16 frame showing the show name.
+  // It keeps the chat content clear of platform overlay UI (YouTube Shorts /
+  // TikTok caption + action buttons) and doubles as branding.
+
+  /** Band background color — overridden per theme to match its accent. */
+  protected get bottomBandBg(): string { return "#000"; }
+
+  /** Band text color — overridden per theme for contrast against the accent. */
+  protected get bottomBandFg(): string { return "#fff"; }
+
+  /** Show name displayed in the band. Empty string when the episode has no name. */
+  protected get bottomLabel(): string { return this.episode.name ?? ""; }
+
+  /** Escape a plain string for safe inline HTML injection. */
+  protected escapeHTML(s: string): string {
+    return s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
   /** URL of the episode-level audio file, or empty string if per-dialogue mode. */
   protected get episodeAudioURL(): string {
     return this.episode.audio ?? "";
@@ -235,6 +257,21 @@ window.addEventListener('load', function() {
   /** Wrap theme-specific style, body, and script into a full HTML document. */
   protected wrapHTML(style: string, body: string, script: string): string {
     const { width, height } = this.viewport;
+    const showBand = this.options.showBottomBand && this.bottomLabel.trim().length > 0;
+    const ratioPct = Math.max(0, Math.min(1, this.options.bottomHeightRatio)) * 100;
+    const bandStyle = showBand
+      ? `
+#pc-bottom-band {
+  flex: 0 0 ${ratioPct}%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px; overflow: hidden;
+  background: ${this.bottomBandBg}; color: ${this.bottomBandFg};
+  font-size: 26px; font-weight: 700; text-align: center; line-height: 1.2;
+}`
+      : "";
+    const band = showBand
+      ? `<div id="pc-bottom-band"><span>${this.escapeHTML(this.bottomLabel)}</span></div>`
+      : "";
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -250,11 +287,18 @@ html, body {
   background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+#pc-stage { width: 100%; height: 100%; display: flex; flex-direction: column; }
+#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }${bandStyle}
 ${style}
 </style>
 </head>
 <body>
+<div id="pc-stage">
+<div id="pc-content">
 ${body}
+</div>
+${band}
+</div>
 <script>
 ${script}
 </script>

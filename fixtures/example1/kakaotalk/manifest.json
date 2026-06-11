@@ -3,7 +3,8 @@
   "theme": "kakaotalk",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-06-10T20:02:20.780Z",
+  "showBottomBand": true,
+  "createdAt": "2026-06-10T21:07:49.434Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",

@@ -5,6 +5,9 @@ export class IMessageTheme extends BaseTheme {
   get id() { return "imessage"; }
   get label() { return "iMessage"; }
 
+  // protected get bottomBandBg() { return "#007aff"; }
+  // protected get bottomBandFg() { return "#fff"; }
+
   render(): string {
     return this.wrapHTML(this.css, this.html, this.js);
   }

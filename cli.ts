@@ -738,6 +738,7 @@ interface Manifest {
   theme: string;
   pauseMs: number;
   showAvatar: boolean;
+  showBottomBand: boolean;
   createdAt: string;
   files: ManifestFiles;
   dialogueCount: number;
@@ -765,7 +766,7 @@ async function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar]
+  npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar] [--no-bottom]
 
   If --output is omitted, files go to <input-json-dir>/output/
 
@@ -777,6 +778,7 @@ Options:
   --theme <id>    Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
   --no-avatar     Hide avatar circles and sender names
+  --no-bottom     Hide the bottom show-name band (shown by default using the JSON "name" field)
 
   Host profile photos default to files in resources/avartar (host_male1, host_female1, …
   by host gender order). Set "useSystemAvatar": false on a host to use only that host's
@@ -798,6 +800,7 @@ Examples:
   const themeId = parseFlag(args, "--theme") || "kakaotalk";
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
   const showAvatar = !args.includes("--no-avatar");
+  const showBottomBand = !args.includes("--no-bottom");
   const doRecord = args.includes("--record");
   const doRecordFull = args.includes("--record-full");
   const doSegments = args.includes("--segments");
@@ -873,7 +876,7 @@ Examples:
 
   let theme;
   try {
-    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar });
+    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar, showBottomBand });
   } catch (e: unknown) {
     console.error((e as Error).message);
     process.exit(1);
@@ -893,6 +896,7 @@ Examples:
       theme: themeId,
       pauseMs,
       showAvatar,
+      showBottomBand,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
       dialogueCount: dialogues.length,
@@ -1083,6 +1087,7 @@ Examples:
       theme: themeId,
       pauseMs,
       showAvatar,
+      showBottomBand,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
       dialogueCount: dialogues.length,

@@ -3,7 +3,8 @@
   "theme": "imessage",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-06-09T18:38:58.826Z",
+  "showBottomBand": true,
+  "createdAt": "2026-06-10T21:08:12.814Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",

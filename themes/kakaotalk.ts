@@ -5,6 +5,9 @@ export class KakaoTalkTheme extends BaseTheme {
   get id() { return "kakaotalk"; }
   get label() { return "KakaoTalk"; }
 
+  // protected get bottomBandBg() { return "#f9e000"; }
+  // protected get bottomBandFg() { return "#3c2e00"; }
+
   render(): string {
     return this.wrapHTML(this.css, this.html, this.js);
   }

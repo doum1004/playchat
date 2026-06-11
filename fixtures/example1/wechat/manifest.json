@@ -3,7 +3,8 @@
   "theme": "wechat",
   "pauseMs": 3000,
   "showAvatar": true,
-  "createdAt": "2026-06-09T18:37:49.970Z",
+  "showBottomBand": true,
+  "createdAt": "2026-06-10T21:08:33.765Z",
   "files": {
     "html": "output.html",
     "mp4": "output.mp4",

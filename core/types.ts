@@ -68,11 +68,17 @@ export interface EngineOptions {
   pauseMs: number;
   /** Whether to render avatar circles and sender names (default true) */
   showAvatar: boolean;
+  /** Show the bottom branding band (show name) below the chat. Default true. */
+  showBottomBand: boolean;
+  /** Bottom band height as a ratio of total viewport height. Default 0.12. */
+  bottomHeightRatio: number;
 }
 
 export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
   pauseMs: 3000,
   showAvatar: true,
+  showBottomBand: true,
+  bottomHeightRatio: 0.12,
 };
 
 export interface FlatDialogue {

@@ -5,6 +5,9 @@ export class WeChatTheme extends BaseTheme {
   get id() { return "wechat"; }
   get label() { return "WeChat"; }
 
+  // protected get bottomBandBg() { return "#07c160"; }
+  // protected get bottomBandFg() { return "#fff"; }
+
   render(): string {
     return this.wrapHTML(this.css, this.html, this.js);
   }
