@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Chat: Asking for Help Naturally</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 960px;
+  height: 540px;
+  overflow: hidden;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#pc-stage { width: 100%; height: 100%; display: flex; flex-direction: column; }
+#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }
+#pc-bottom-band {
+  flex: 0 0 12%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px; overflow: hidden;
+  background: #000; color: #fff;
+  font-size: 26px; font-weight: 700; text-align: center; line-height: 1.2;
+}
+#pc-stage { flex-direction: row; }
+#pc-chat-pane {
+  flex: 0 0 432px;
+  width: 432px;
+  height: 100%;
+  display: flex; flex-direction: column;
+}
+#pc-media-pane {
+  flex: 1 1 auto; min-width: 0; height: 100%;
+  position: relative; overflow: hidden; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+#pc-media-img, #pc-media-video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+#pc-media-label {
+  position: absolute; top: 18px; right: 18px; z-index: 2;
+  max-width: 70%; padding: 8px 16px; border-radius: 999px;
+  background: #000; color: #fff;
+  font-size: 22px; font-weight: 700; line-height: 1.2; text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.device {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.kk-header {
+  background: #3c1e1e;
+  padding: 16px 22px 14px;
+  display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+.kk-back { color: #f9e000; font-size: 22px; font-weight: 500; }
+.kk-room-name {
+  color: #fff; font-size: 20px; font-weight: 500; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+}
+.kk-count { color: rgba(255,255,255,0.55); font-size: 18px; white-space: nowrap; }
+
+.kk-body {
+  background: #b2c7d9;
+  flex: 1; overflow-y: auto;
+  padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  scroll-behavior: smooth;
+}
+
+.date-divider { text-align: center; margin: 8px 0 11px; }
+.date-divider span {
+  background: rgba(0,0,0,0.18); color: #fff;
+  font-size: 15px; padding: 4px 16px; border-radius: 20px;
+}
+
+.section-divider { text-align: center; margin: 11px 0 6px; }
+.section-divider span {
+  background: rgba(0,0,0,0.12); color: rgba(255,255,255,0.9);
+  font-size: 14px; padding: 3px 14px; border-radius: 20px; font-weight: 500;
+}
+
+.msg-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
+.msg-row.right { flex-direction: row-reverse; }
+
+.avatar-col { display: flex; flex-direction: column; align-items: center; width: 48px; flex-shrink: 0; }
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;        /* ← key fix */
+  text-align: center;
+}
+.avatar-letter { position: relative; z-index: 1; }
+.avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
+}
+
+.msg-col { display: flex; flex-direction: column; max-width: 68%; }
+.msg-col.right { align-items: flex-end; }
+
+.sender-name { font-size: 15px; color: rgba(0,0,0,0.55); margin-bottom: 4px; padding-left: 3px; }
+.sender-name.right { padding-left: 0; padding-right: 3px; }
+
+.bubble-wrap { display: flex; align-items: flex-end; gap: 6px; }
+.bubble-wrap.right { flex-direction: row-reverse; }
+
+.bubble {
+  padding: 11px 15px; font-size: 18px; line-height: 1.5;
+  color: #1a1a1a; max-width: 100%; word-break: break-word;
+}
+.bubble.left  { background: #fff;    border-radius: 0 16px 16px 16px; }
+.bubble.right { background: #f9e000; border-radius: 16px 0 16px 16px; }
+.bubble.pop   { animation: popIn 0.2s ease-out; }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.time-stamp { font-size: 14px; color: rgba(0,0,0,0.4); white-space: nowrap; margin-bottom: 2px; }
+
+.bubble-img {
+  max-width: 100%; max-height: 280px; width: auto; display: block;
+  object-fit: cover; overflow: hidden;
+  margin-bottom: 6px;
+}
+.bubble-img.left  { border-radius: 0 16px 16px 16px; }
+.bubble-img.right { border-radius: 16px 0 16px 16px; }
+
+.kk-footer {
+  background: #f0f0f0; border-top: 0.5px solid #d0d0d0;
+  padding: 11px 16px; display: flex; align-items: center; gap: 11px;
+  flex-shrink: 0;
+}
+.kk-input {
+  flex: 1; background: #fff; border: 0.5px solid #d0d0d0;
+  border-radius: 24px; padding: 10px 18px; font-size: 18px; color: #999;
+}
+.kk-send {
+  width: 44px; height: 44px; background: #f9e000; border-radius: 50%;
+  border: none; display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+<div id="pc-stage">
+<div id="pc-chat-pane">
+<div id="pc-content">
+
+<div class="device">
+  <div class="kk-header">
+    <span class="kk-back">&#8249;</span>
+    <span class="kk-room-name">Let's Chat: Asking for Help Naturally</span>
+    <span class="kk-count">2</span>
+  </div>
+  <div class="kk-body" id="chat-body">
+    <div class="date-divider"><span id="chat-date"></span></div>
+    <div class="section-divider"><span>[톡톡 인사말]</span></div>
+  </div>
+  <div class="kk-footer">
+    <div class="kk-input">Type a message</div>
+    <div class="kk-send">
+      <svg width="19" height="19" viewBox="0 0 14 14" fill="none">
+        <path d="M1 7L13 1L9 13L7 8L1 7Z" fill="#3c2e00"/>
+      </svg>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+<div id="pc-media-pane">
+<div id="pc-media-label">톡톡 영어</div>
+<img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
+<video id="pc-media-video" style="display:none" muted playsinline loop></video>
+</div>
+</div>
+<script>
+
+const body = document.getElementById('chat-body');
+(function() {
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('chat-date').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+})();
+const ME = "host_1";
+const SHOW_AVATAR = true;
+const HOST_MAP = {"host_1":{"letter":"민","bg":"#f9e000","fg":"#3c2e00","image":"","bubbleBg":"#f9e000","bubbleFg":"#1a1a1a"},"host_2":{"letter":"A","bg":"#ff7043","fg":"#fff","image":"","bubbleBg":"#fff","bubbleFg":"#1a1a1a"}};
+
+var _virtualClockMs = Date.now();
+function getTime(audioDurationSec) {
+  var t = new Date(_virtualClockMs);
+  var h = t.getHours(), m = t.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  var stamp = ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  if (audioDurationSec && audioDurationSec > 0) {
+    _virtualClockMs += audioDurationSec * 1000;
+  }
+  return stamp;
+}
+
+function avatarHTML(d) {
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
+  var letter = '<span class="avatar-letter">' + info.letter + '</span>';
+  var img = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
+  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + letter + img + '</div></div>';
+}
+
+function appendMsg(d) {
+  var side = d.speaker === ME ? 'right' : 'left';
+  var t = getTime(d.audioDurationSec);
+
+  if (d.section !== lastSection) {
+    var div = document.createElement('div');
+    div.className = 'section-divider';
+    div.innerHTML = '<span>' + d.section + '</span>';
+    body.appendChild(div);
+    lastSection = d.section;
+  }
+
+  var row = document.createElement('div');
+  row.className = 'msg-row' + (side === 'right' ? ' right' : '');
+  var html = '';
+  if (SHOW_AVATAR) html += avatarHTML(d);
+  html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
+  if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  if (d.image && !HORIZONTAL) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
+  html +=
+      '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
+        '<span class="time-stamp">' + t + '</span>' +
+      '</div>' +
+    '</div>';
+  row.innerHTML = html;
+
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
+}
+
+
+const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/d44e091b6a5b2602.mp3","imageRaw":"https://images.unsplash.com/photo-1785294476300-e2828a05f7f7?q=80\u0026w=1330\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","sectionImage":"","sectionImageRaw":"","timeStartSec":32.3,"timeEndSec":38}];
+const TOTAL = dialogues.length;
+let idx = 0, isPlaying = false, currentAudio = null;
+let lastSection = "[톡톡 인사말]";
+const POST_AUDIO_GAP_MS = 400;
+const EPISODE_AUDIO_URL = "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5031974702cb4a24/episode.mp3";
+const IS_EPISODE_AUDIO = true;
+const HORIZONTAL = true;
+const EPISODE_IMAGE = "";
+
+// ── Right media pane (horizontal layout) ────────────────────────────────────
+// Displays the active image/video on the right side. Media follows its parent
+// scope's lifecycle:
+//   • a dialogue image shows only while that dialogue is active; once it ends
+//     the pane falls back to the section image;
+//   • a section image shows across its section; once the section ends it falls
+//     back to the episode image.
+// Effective priority at any instant: active dialogue image > section image > episode image.
+function __isVideoSrc__(s) {
+  return /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(s);
+}
+function __mediaSrc__(d, ended) {
+  if (!d) return EPISODE_IMAGE || '';
+  var own = ended ? '' : (d.image || '');
+  return own || d.sectionImage || EPISODE_IMAGE || '';
+}
+// Show media for dialogue `d`. When `ended` is true the dialogue's own image is
+// dropped so the section/episode image shows during the gap after it finishes.
+function setMedia(d, ended) {
+  if (!HORIZONTAL) return;
+  var img = document.getElementById('pc-media-img');
+  var vid = document.getElementById('pc-media-video');
+  if (!img || !vid) return;
+  var src = __mediaSrc__(d, ended);
+  if (!src) {
+    img.style.display = 'none';
+    vid.style.display = 'none';
+    if (vid.pause) vid.pause();
+    return;
+  }
+  if (__isVideoSrc__(src)) {
+    img.style.display = 'none';
+    if (vid.getAttribute('src') !== src) vid.setAttribute('src', src);
+    vid.style.display = 'block';
+    if (vid.play) { var p = vid.play(); if (p && p.catch) p.catch(function() {}); }
+  } else {
+    vid.style.display = 'none';
+    if (vid.pause) vid.pause();
+    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+    img.style.display = 'block';
+  }
+}
+
+// Render a dialogue bubble and show its media (dialogue still active).
+function showMsg(d) {
+  appendMsg(d);
+  setMedia(d, false);
+}
+
+// ── Image-aware scrolling ───────────────────────────────────────────────────
+// Bubbles are scrolled into view the moment they're appended, but images load
+// asynchronously and report height 0 until decoded. Re-scroll once each image
+// finishes so the newest content stays in view instead of being pushed below
+// the fold (which crops text and can hide the image entirely in screenshots).
+window.__imgLoaded__ = function() {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+};
+
+// Recorder hook: resolves once every <img> has finished loading (or errored).
+// The recorder awaits this before each screenshot so frames never capture a
+// half-loaded image or text cropped by a not-yet-measured image height.
+window.__IMAGES_READY__ = function() {
+  var imgs = Array.prototype.slice.call(document.images || []);
+  return Promise.all(imgs.map(function(img) {
+    if (img.complete) return null;
+    return new Promise(function(res) {
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+    });
+  })).then(function() {
+    var chatBody = document.getElementById('chat-body');
+    if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+  });
+};
+
+// ── Episode-audio preview mode ──────────────────────────────────────────────
+// Plays a single audio file; shows bubbles when currentTime reaches each
+// dialogue's timeStartSec.
+
+function playEpisodeAudio() {
+  var audio = new Audio(EPISODE_AUDIO_URL);
+  var nextIdx = 0;
+  audio.addEventListener('timeupdate', function() {
+    var t = audio.currentTime;
+    while (nextIdx < TOTAL && dialogues[nextIdx].timeStartSec <= t) {
+      showMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    // Media follows the active dialogue: once t passes its timeEndSec the
+    // dialogue image is dropped in favour of the section/episode image.
+    if (nextIdx > 0) {
+      var active = dialogues[nextIdx - 1];
+      setMedia(active, active.timeEndSec > 0 && t > active.timeEndSec);
+    }
+    if (nextIdx >= TOTAL) {
+      document.body.dataset.done = '1';
+    }
+  });
+  audio.addEventListener('ended', function() {
+    // Flush any remaining dialogues
+    while (nextIdx < TOTAL) {
+      showMsg(dialogues[nextIdx]);
+      nextIdx++;
+    }
+    document.body.dataset.done = '1';
+  });
+  audio.onerror = function() {
+    console.warn('Episode audio failed to load, falling back to per-dialogue mode');
+    playNext();
+  };
+  audio.play().catch(function() {
+    console.warn('Episode audio play() rejected, falling back to per-dialogue mode');
+    playNext();
+  });
+}
+
+// ── Per-dialogue preview mode ───────────────────────────────────────────────
+
+function playNext() {
+  if (idx >= TOTAL) {
+    isPlaying = false;
+    document.body.dataset.done = '1';
+    return;
+  }
+  const d = dialogues[idx];
+  appendMsg(d);
+  setMedia(d, false);
+  idx++;
+
+  if (d.audio) {
+    currentAudio = new Audio(d.audio);
+    // When the clip ends, drop the dialogue image so the section/episode image
+    // shows during the gap before the next dialogue appears.
+    currentAudio.onended = function() { setMedia(d, true); setTimeout(playNext, POST_AUDIO_GAP_MS); };
+    currentAudio.onerror = function() { setMedia(d, true); setTimeout(playNext, 2000); };
+    currentAudio.play().catch(function() { setMedia(d, true); setTimeout(playNext, 2000); });
+  } else {
+    setTimeout(playNext, 3000);
+  }
+}
+
+/**
+ * Scrubber mode: the recorder is the sole clock. It calls
+ * window.__SCRUB__(frameTimeMs) before every screenshot. This function
+ * renders all messages whose showAtMs <= frameTimeMs that haven't been
+ * shown yet. No browser-side timers are used — zero drift.
+ *
+ * window.__TIMELINE__ must be set (via evaluateOnNewDocument) before load.
+ */
+function initScrubberMode(timeline) {
+  var chatBody = document.getElementById('chat-body');
+  if (chatBody) chatBody.style.scrollBehavior = 'auto';
+  var noAnim = document.createElement('style');
+  noAnim.textContent = '*, *::before, *::after { animation-duration: 0s !important; }';
+  document.head.appendChild(noAnim);
+  var rendered = 0;
+  window.__SCRUB__ = function(nowMs) {
+    while (
+      rendered < dialogues.length &&
+      rendered < timeline.length &&
+      timeline[rendered] <= nowMs
+    ) {
+      showMsg(dialogues[rendered]);
+      rendered++;
+    }
+    // Media follows the active dialogue's lifecycle. A dialogue ends at
+    // timeline[i] + its audio duration; past that the pane reverts to the
+    // section image (and to the episode image once the section changes).
+    if (rendered > 0) {
+      var ai = rendered - 1;
+      var endMs = timeline[ai] + (dialogues[ai].audioDurationSec || 0) * 1000;
+      setMedia(dialogues[ai], nowMs > endMs);
+    } else {
+      setMedia(null, false);
+    }
+    if (rendered >= dialogues.length || rendered >= timeline.length) {
+      document.body.dataset.done = '1';
+    }
+  };
+}
+
+window.addEventListener('load', function() {
+  // Show the episode default image on the right pane before any dialogue.
+  setMedia(null, false);
+
+  if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
+    initScrubberMode(window.__TIMELINE__);
+    return;
+  }
+
+  // Preview mode now auto-starts by default. Users can still opt out via ?autoplay=0.
+  var autoplay = new URLSearchParams(location.search).get('autoplay');
+  if (autoplay === '0') return;
+
+  setTimeout(function() {
+    isPlaying = true;
+    if (IS_EPISODE_AUDIO) {
+      playEpisodeAudio();
+    } else {
+      playNext();
+    }
+  }, 800);
+});
+
+</script>
+</body>
+</html>

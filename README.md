@@ -42,12 +42,15 @@ npx playchat episode.json --record
 
 # Record with explicit output folder, custom theme and pause
 npx playchat episode.json --output ./my-output --record --theme kakaotalk --pause 4000
+
+# Record a horizontal (16:9) video at 4K with a media pane on the right
+npx playchat episode.json --record --orientation horizontal --resolution 4k
 ```
 
 ## CLI Options
 
 ```
-npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar] [--no-bottom]
+npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--orientation <o>] [--resolution <r>] [--no-avatar] [--no-bottom]
 ```
 
 | Flag | Default | Description |
@@ -58,8 +61,10 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 | `--segments` | _(off)_ | Also produce individual MP4 videos per section (requires `--record` or `--record-full`) |
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
+| `--orientation <o>` | `vertical` | Frame orientation: `vertical` (9:16) or `horizontal` (16:9) |
+| `--resolution <r>` | `1k` | Output resolution: `1k`, `2k`, or `4k` |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
-| `--no-bottom` | _(off)_ | Hide the bottom show-name band (shown by default) |
+| `--no-bottom` | _(off)_ | Hide the show-name band/label (shown by default) |
 
 ## Output Directory
 
@@ -151,10 +156,11 @@ Every run writes a `manifest.json` to the output folder:
 
 ## Available Themes
 
-All themes render at a **9:16** aspect ratio and export to **1080×1920 (Full HD)**
-(540×960 logical viewport captured at 2× scale).
+By default all themes render at a **9:16** aspect ratio (`--orientation vertical`),
+exporting to **1080×1920 (Full HD)** at `1k` resolution (540×960 logical viewport
+captured at 2× scale).
 
-| Theme | ID | Output |
+| Theme | ID | Default output |
 |---|---|---|
 | KakaoTalk | `kakaotalk` | 1080×1920 (9:16) |
 | iMessage | `imessage` | 1080×1920 (9:16) |
@@ -164,19 +170,56 @@ The first host in `episode.hosts` is treated as "me" and renders on the right
 side; all other hosts render on the left. By default every message shows an
 avatar circle and sender name. Pass `--no-avatar` to hide them.
 
-### Bottom show-name band
+## Orientation
 
-Because the output is a vertical 9:16 video, most platforms (YouTube Shorts,
-TikTok) overlay their own metadata UI — caption, username, action buttons — across
-the **bottom** of the frame, which would otherwise cover the lowest chat content.
+Use `--orientation` to choose the frame shape:
 
-To keep the conversation clear of that overlay zone, a band is reserved at the
-bottom of the frame (12% of the video height) and filled with the episode's
-`name` field, centered. This both pushes the chat content up out of the overlay
-zone and doubles as branding.
+- **`vertical`** (default) — a portrait **9:16** frame for Shorts/Reels/TikTok.
+- **`horizontal`** — a landscape **16:9** frame. The chat stays in a portrait
+  strip on the **left** (about 45% of the width, the same narrow ratio as
+  vertical), and the **right** pane displays a large image/video.
 
-The band is shown by default. It is omitted automatically when the episode JSON
-has no `name`, and can be disabled explicitly with `--no-bottom`.
+### Right pane (horizontal only)
+
+In horizontal mode the right pane shows media that follows the currently active
+scope, falling back down the hierarchy:
+
+**dialogue image → section image → episode image**
+
+Each media item's lifecycle follows its parent: a dialogue image is shown only
+while that dialogue is active and reverts to the section image when the dialogue
+ends; the section image reverts to the episode image when the section changes.
+A `.mp4`/`.webm`/`.mov` source is played as a looping muted video instead of an
+image. In horizontal mode the inline chat-bubble thumbnail is suppressed since
+the image is shown large on the right.
+
+Set the images with `episode.image`, `sections[].image`, and `dialogues[].image`
+(see [Episode JSON Format](#episode-json-format)).
+
+## Resolution
+
+`--resolution` scales the exported video while keeping the aspect ratio:
+
+| Value | Long side | Vertical (9:16) | Horizontal (16:9) |
+|---|---|---|---|
+| `1k` (default) | 1920 | 1080×1920 | 1920×1080 |
+| `2k` | 2560 | 1440×2560 | 2560×1440 |
+| `4k` | 3840 | 2160×3840 | 3840×2160 |
+
+## Show-name band / label
+
+The episode's `name` field is displayed as branding, positioned to stay clear of
+platform overlay UI:
+
+- **Vertical** — a band is reserved at the **bottom** of the frame (12% of the
+  video height) and filled with the `name`, centered. This pushes the chat
+  content up out of the zone where YouTube Shorts / TikTok overlay their caption,
+  username, and action buttons.
+- **Horizontal** — the `name` moves to a pill label in the **top-right** corner
+  overlaid on the right media pane, keeping the left chat strip clean.
+
+It is shown by default, omitted automatically when the episode JSON has no
+`name`, and can be disabled explicitly with `--no-bottom`.
 
 ## Episode JSON Format
 
@@ -188,6 +231,7 @@ has no `name`, and can be disabled explicitly with `--no-bottom`.
   "topic": "...",
   "subtitle": "...",
   "summary": "...",
+  "image": "https://cdn.example.com/episode.jpg",
   "hosts": [
     {
       "id": "host_1",
@@ -205,13 +249,15 @@ has no `name`, and can be disabled explicitly with `--no-bottom`.
       "section_title": "Opening",
       "section_type": "opening",
       "corner_name": "Opening 🎙️",
+      "image": "https://cdn.example.com/section1.jpg",
       "dialogues": [
         {
           "id": 1,
           "speaker": "host_1",
           "name": "Minsu",
           "text": "Hello!",
-          "audio": "path/to/segment_0000.mp3"
+          "audio": "path/to/segment_0000.mp3",
+          "image": "https://cdn.example.com/dialogue1.jpg"
         }
       ]
     }
@@ -230,6 +276,12 @@ has no `name`, and can be disabled explicitly with `--no-bottom`.
 `hosts[i].image` is optional. When present, the value is used as the avatar
 image in chat themes; when omitted or if loading fails, the theme falls back to
 the host's initial letter.
+
+The top-level `image`, `sections[].image`, and `dialogues[].image` fields are
+optional and only used in `--orientation horizontal` mode, where they populate
+the right media pane (dialogue image \u2192 section image \u2192 episode image). Each
+accepts a local path or a remote URL, and may point at an image or a video
+(`.mp4`/`.webm`/`.mov`).
 
 ### Highlights (optional)
 

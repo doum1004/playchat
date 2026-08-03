@@ -1,0 +1,103 @@
+{
+    "name": "톡톡 영어",
+    "episode_title": "Let's Chat: Asking for Help Naturally",
+    "episode_number": 1,
+    "topic": "Asking for help in daily situations",
+    "subtitle": "Easy and natural ways to ask for help",
+    "summary": "민수와 Ashley가 실생활에서 흔히 마주치는 도움 요청 상황을 통해 자연스럽고 자주 쓰는 영어 표현을 배워봅니다.",
+    "image": "https://plus.unsplash.com/premium_photo-1780314588766-e5a0719599db?q=80&w=1288&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "hosts": [
+      {
+        "id": "host_1",
+        "name": "민수",
+        "gender": "male",
+        "role": "learner",
+        "lang": "ko",
+        "voice_config": {
+          "voice_index": 1,
+          "pitch": 1,
+          "speed": 0.9
+        }
+      },
+      {
+        "id": "host_2",
+        "name": "Ashley",
+        "gender": "female",
+        "role": "teacher",
+        "lang": "en",
+        "voice_config": {
+          "voice_index": 2,
+          "pitch": 0,
+          "speed": 1.1
+        }
+      }
+    ],
+    "sections": [
+      {
+        "section_id": 1,
+        "section_title": "톡톡 인사말",
+        "section_type": "opening",
+        "corner_name": "[톡톡 인사말]",
+        "image": "https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80&w=1271&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "dialogues": [
+          {
+            "id": 1,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3",
+            "image": "https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg",
+            "time_start": 8.0,
+            "time_end": 14.5
+          },
+          {
+            "id": 2,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3",
+            "time_start": 14.8,
+            "time_end": 20.2
+          },
+          {
+            "id": 3,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3",
+            "time_start": 20.5,
+            "time_end": 26.0
+          }
+        ]
+      },
+      {
+        "section_id": 2,
+        "section_title": "실전 영어 상황극",
+        "section_type": "hook",
+        "corner_name": "[실전 영어 상황극]",
+        "dialogues": [
+          {
+            "id": 4,
+            "speaker": "host_1",
+            "name": "민수",
+            "text": "Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3",
+            "time_start": 26.3,
+            "time_end": 32.0
+          },
+          {
+            "id": 5,
+            "speaker": "host_2",
+            "name": "Ashley",
+            "text": "Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.",
+            "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3",
+            "image": "https://images.unsplash.com/photo-1785294476300-e2828a05f7f7?q=80&w=1330&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "time_start": 32.3,
+            "time_end": 38.0
+          }
+        ]
+      }
+    ],
+    "lang": "en",
+    "audio": "https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/5031974702cb4a24/episode.mp3"
+  }

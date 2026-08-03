@@ -236,7 +236,7 @@ function appendMsg(d) {
   if (SHOW_AVATAR) html += avatarHTML(d);
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
-  if (d.image) html += '<img class="bubble-img" src="' + d.image + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
+  if (d.image && !HORIZONTAL) html += '<img class="bubble-img" src="' + d.image + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
   var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
   var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg + ';--bubble-bg:' + bInfo.bubbleBg : '';
   html +=

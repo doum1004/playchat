@@ -17,7 +17,7 @@ function makeHost(id: string, image?: string): Host {
   };
 }
 
-function makeDialogue(id: number, imageRaw: string): FlatDialogue {
+function makeDialogue(id: number, imageRaw: string, sectionImageRaw = ""): FlatDialogue {
   return {
     speaker: "host_1",
     name: "Host",
@@ -28,6 +28,8 @@ function makeDialogue(id: number, imageRaw: string): FlatDialogue {
     audioDurationSec: 0,
     image: imageRaw,
     imageRaw,
+    sectionImage: sectionImageRaw,
+    sectionImageRaw,
     timeStartSec: 0,
     timeEndSec: 0,
   };

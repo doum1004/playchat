@@ -14,8 +14,24 @@ import { applySystemHostAvatars } from "./core/system-avatar";
 import { getTheme, listThemes } from "./themes";
 
 const FPS = 15;
-const SCALE = 2;
+let SCALE = 2;
 const MAX_DURATION_SEC = 10 * 60;
+
+/**
+ * Output resolution presets. The logical viewport long side is 960, so the
+ * device scale factor maps to the standard 16:9 short/long side pairs:
+ *   1k → 1920 (Full HD, default)   2k → 2560 (QHD)   4k → 3840 (UHD)
+ */
+const RESOLUTION_SCALES: Record<string, number> = {
+  "1k": 2,
+  "2k": 8 / 3,
+  "4k": 4,
+};
+
+/** Scale a logical dimension by SCALE, rounded to an even integer (h264-safe). */
+function scaledDim(logical: number): number {
+  return Math.round((logical * SCALE) / 2) * 2;
+}
 
 // ── CLI helpers ───────────────────────────────────────────────────────────────
 
@@ -162,10 +178,11 @@ async function cachedDownload(url: string): Promise<string> {
 
 async function resolveRemoteImages(
   dialogues: FlatDialogue[],
-  hosts: PodcastEpisode["hosts"] = []
+  hosts: PodcastEpisode["hosts"] = [],
+  episodeImage?: string
 ): Promise<Map<string, string>> {
   const urlMap = new Map<string, string>();
-  const uniqueUrls = collectRemoteImageUrls(dialogues, hosts);
+  const uniqueUrls = collectRemoteImageUrls(dialogues, hosts, episodeImage);
   await Promise.all(
     uniqueUrls.map(async (url) => {
       try {
@@ -345,16 +362,48 @@ async function recordStatic(
   pauseMs: number,
   silentMp4: string,
   screenshots?: BubbleScreenshotPaths,
-  totalDurationMs?: number
+  totalDurationMs?: number,
+  dialogues: FlatDialogue[] = [],
+  mediaAware = false
 ): Promise<void> {
   const POST_AUDIO_GAP_MS = 400;
   const TAIL_MS = 2000;
+  const GAP_EPS_MS = 50;
 
-  const outW = width * SCALE;
-  const outH = height * SCALE;
+  const outW = scaledDim(width);
+  const outH = scaledDim(height);
   const timelineMs = timings.map((t) => t.showAtMs);
 
-  process.stdout.write(`Recording static  ${width}x${height}  ${timings.length} frames ...`);
+  // ── Capture plan ──────────────────────────────────────────────────────────
+  // Normally one held frame per dialogue. In horizontal (media-aware) mode a
+  // dialogue that owns an image is split into two frames so the right pane
+  // reverts to the section/episode image the moment that dialogue's audio ends
+  // (instead of holding the dialogue image through the trailing gap).
+  interface Capture { scrubMs: number; holdMs: number }
+  const captures: Capture[] = [];
+  for (let i = 0; i < timings.length; i++) {
+    const showAt = timings[i].showAtMs;
+    const nextShow = i < timings.length - 1
+      ? timings[i + 1].showAtMs
+      : showAt + (timings[i].audioDurationMs > 0 ? timings[i].audioDurationMs + POST_AUDIO_GAP_MS : pauseMs);
+    const endAt = timings[i].audioDurationMs > 0 ? showAt + timings[i].audioDurationMs : nextShow;
+    const ownsImage = mediaAware && !!dialogues[i]?.image;
+    const isLast = i === timings.length - 1;
+    if (ownsImage && endAt < nextShow - GAP_EPS_MS) {
+      // Dialogue image while active, then revert during the trailing gap.
+      captures.push({ scrubMs: showAt, holdMs: endAt - showAt });
+      captures.push({ scrubMs: Math.min(nextShow - 1, endAt + GAP_EPS_MS), holdMs: nextShow - endAt });
+    } else if (ownsImage && isLast) {
+      // Last dialogue owns an image: revert for the tail so it ends on the
+      // section/episode image rather than lingering on the dialogue image.
+      captures.push({ scrubMs: showAt, holdMs: Math.max(0, endAt - showAt) });
+      captures.push({ scrubMs: endAt + GAP_EPS_MS, holdMs: Math.max(GAP_EPS_MS, nextShow - endAt) });
+    } else {
+      captures.push({ scrubMs: showAt, holdMs: nextShow - showAt });
+    }
+  }
+
+  process.stdout.write(`Recording static  ${width}x${height}  ${captures.length} frames ...`);
 
   const browser = await puppeteer.launch({
     headless: "new" as never,
@@ -387,13 +436,13 @@ async function recordStatic(
       await page.screenshot({ type: "png", clip, path: blankFramePath });
     }
 
-    for (let i = 0; i < timings.length; i++) {
-      await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${timings[i].showAtMs})`);
+    for (let i = 0; i < captures.length; i++) {
+      await page.evaluate(`window.__SCRUB__ && window.__SCRUB__(${captures[i].scrubMs})`);
       await waitForImages(page);
       const framePath = path.join(tmpDir, `frame_${String(i).padStart(4, "0")}.png`);
       await page.screenshot({ type: "png", clip, path: framePath });
       framePaths.push(framePath);
-      process.stdout.write(`\rRecording static  ${width}x${height}  ${timings.length} frames ... ${i + 1}/${timings.length}`);
+      process.stdout.write(`\rRecording static  ${width}x${height}  ${captures.length} frames ... ${i + 1}/${captures.length}`);
     }
 
     // Tail frame (last state held a bit longer)
@@ -420,14 +469,8 @@ async function recordStatic(
     }
 
     let accumulatedMs = leadInMs;
-    for (let i = 0; i < timings.length; i++) {
-      const t = timings[i];
-      // Use the gap between consecutive showAtMs values so video frames
-      // stay in sync with the actual audio timeline (episode-audio mode
-      // has varying inter-dialogue gaps, not fixed 400ms).
-      const holdMs = i < timings.length - 1
-        ? timings[i + 1].showAtMs - t.showAtMs
-        : (t.audioDurationMs > 0 ? t.audioDurationMs + POST_AUDIO_GAP_MS : pauseMs);
+    for (let i = 0; i < captures.length; i++) {
+      const holdMs = captures[i].holdMs;
       accumulatedMs += holdMs;
       concatLines.push(`file '${framePaths[i].replace(/\\/g, "/")}'`);
       concatLines.push(`duration ${(holdMs / 1000).toFixed(3)}`);
@@ -461,7 +504,7 @@ async function recordStatic(
     ffmpegArgs.push(silentMp4);
     execFileSync("ffmpeg", ffmpegArgs, { stdio: "pipe" });
 
-    process.stdout.write(`\rRecording static  ${width}x${height}  ${timings.length} frames ... done\n`);
+    process.stdout.write(`\rRecording static  ${width}x${height}  ${captures.length} frames ... done\n`);
   } finally {
     await browser.close();
     fs.rmSync(tmpDir, { recursive: true });
@@ -488,8 +531,8 @@ async function recordSegment(
   segPath: string,
   onProgress: (framesCompleted: number) => void
 ): Promise<void> {
-  const outW = width * SCALE;
-  const outH = height * SCALE;
+  const outW = scaledDim(width);
+  const outH = scaledDim(height);
 
   const ffmpegProc = spawn("ffmpeg", [
     "-y",
@@ -766,7 +809,7 @@ async function main() {
   if (args.includes("--help") || args.length === 0) {
     console.log(`
 Usage:
-  npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--no-avatar] [--no-bottom]
+  npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--resolution <1k|2k|4k>] [--no-avatar] [--no-bottom]
 
   If --output is omitted, files go to <input-json-dir>/output/
 
@@ -777,6 +820,8 @@ Options:
   --segments      Also produce individual MP4 videos per section (requires --record or --record-full)
   --theme <id>    Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
+  --resolution <r> Output resolution: 1k (1080p), 2k (1440p), 4k (2160p) [default: 1k]
+  --orientation <o> Frame orientation: vertical (9:16) or horizontal (16:9) [default: vertical]
   --no-avatar     Hide avatar circles and sender names
   --no-bottom     Hide the bottom show-name band (shown by default using the JSON "name" field)
 
@@ -799,6 +844,17 @@ Examples:
   const inputDir = path.dirname(inputAbsPath);
   const themeId = parseFlag(args, "--theme") || "kakaotalk";
   const pauseMs = parseInt(parseFlag(args, "--pause") || String(DEFAULT_ENGINE_OPTIONS.pauseMs), 10);
+  const resolution = (parseFlag(args, "--resolution") || "1k").toLowerCase();
+  if (!(resolution in RESOLUTION_SCALES)) {
+    console.error(`Invalid --resolution "${resolution}". Valid: ${Object.keys(RESOLUTION_SCALES).join(", ")}`);
+    process.exit(1);
+  }
+  SCALE = RESOLUTION_SCALES[resolution];
+  const orientation = (parseFlag(args, "--orientation") || "vertical").toLowerCase();
+  if (orientation !== "vertical" && orientation !== "horizontal") {
+    console.error(`Invalid --orientation "${orientation}". Valid: vertical, horizontal`);
+    process.exit(1);
+  }
   const showAvatar = !args.includes("--no-avatar");
   const showBottomBand = !args.includes("--no-bottom");
   const doRecord = args.includes("--record");
@@ -838,6 +894,12 @@ Examples:
     }
   }
 
+  // Normalize the episode-level default image (right pane in horizontal layout)
+  // relative to the input JSON directory.
+  if (episode.image) {
+    episode.image = normalizeAudioPath(episode.image, inputDir);
+  }
+
   // Pre-compute audio durations and stamp them on dialogues so themes can
   // display realistic timestamps (e.g. KakaoTalk's virtual clock).
   const useEpisodeAudio = isEpisodeAudioMode(dialogues) && !!episode.audio;
@@ -870,13 +932,13 @@ Examples:
   if (doRecord || doRecordFull) {
     // Pre-download remote images and rewrite d.image to file:/// so Puppeteer
     // can load them instantly without waiting on network requests at screenshot time.
-    const remoteImageMap = await resolveRemoteImages(dialogues, episode.hosts);
-    applyCachedImageUris(dialogues, episode.hosts, remoteImageMap);
+    const remoteImageMap = await resolveRemoteImages(dialogues, episode.hosts, episode.image);
+    applyCachedImageUris(dialogues, episode.hosts, remoteImageMap, episode);
   }
 
   let theme;
   try {
-    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar, showBottomBand });
+    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar, showBottomBand, orientation });
   } catch (e: unknown) {
     console.error((e as Error).message);
     process.exit(1);
@@ -949,7 +1011,7 @@ Examples:
     if (doRecordFull) {
       await recordAndEncode(htmlPath, width, height, timings, silentMp4, bubbleScreenshots, totalMs);
     } else {
-      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots, totalMs);
+      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots, totalMs, dialogues, orientation === "horizontal");
     }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
@@ -978,8 +1040,8 @@ Examples:
       fs.renameSync(silentMp4, mp4Path);
     }
 
-    const outW = width * SCALE;
-    const outH = height * SCALE;
+    const outW = scaledDim(width);
+    const outH = scaledDim(height);
     console.log(`\nDone: ${mp4Path} (${outW}x${outH}) [Elapsed: ${formatElapsed(Date.now() - startTime)}]`);
 
     manifestFiles.mp4 = "output.mp4";

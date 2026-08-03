@@ -1,4 +1,4 @@
-import { PodcastEpisode, FlatDialogue, EngineOptions, DEFAULT_ENGINE_OPTIONS } from "../core/types";
+import { PodcastEpisode, FlatDialogue, EngineOptions, Orientation, DEFAULT_ENGINE_OPTIONS, normalizeAudioPath } from "../core/types";
 
 export interface ThemeConfig {
   width: number;
@@ -10,6 +10,12 @@ export interface ThemeConfig {
  * Recording captures at deviceScaleFactor 2, so output = 1080×1920 (Full HD).
  */
 export const THEME_VIEWPORT: ThemeConfig = { width: 540, height: 960 };
+
+/**
+ * Horizontal 16:9 logical viewport (→ 1920×1080 after 2× scale).
+ * Chat occupies a portrait strip on the left; the right pane shows image/video.
+ */
+export const THEME_VIEWPORT_HORIZONTAL: ThemeConfig = { width: 960, height: 540 };
 
 /**
  * Abstract base for all chat themes.
@@ -36,8 +42,33 @@ export abstract class BaseTheme {
   abstract get label(): string;
   abstract render(): string;
 
-  /** 9:16 viewport shared by all themes (1080×1920 after 2× scale). */
-  get viewport(): ThemeConfig { return THEME_VIEWPORT; }
+  /** Frame orientation from engine options (CLI-driven). Defaults to "vertical". */
+  get orientation(): Orientation {
+    return this.options.orientation === "horizontal" ? "horizontal" : "vertical";
+  }
+
+  protected get isHorizontal(): boolean {
+    return this.orientation === "horizontal";
+  }
+
+  /** Viewport depends on orientation: 9:16 vertical (default) or 16:9 horizontal. */
+  get viewport(): ThemeConfig {
+    return this.isHorizontal ? THEME_VIEWPORT_HORIZONTAL : THEME_VIEWPORT;
+  }
+
+  /**
+   * Width of the chat pane in horizontal layout. A portrait strip on the left,
+   * kept just under half the frame width so the media pane stays dominant.
+   */
+  protected get chatPaneWidth(): number {
+    return Math.round(this.viewport.width * 0.45);
+  }
+
+  /** Browser-usable URI of the episode-level default image (right pane). */
+  protected get episodeImageURI(): string {
+    const img = this.episode.image ?? "";
+    return img ? normalizeAudioPath(img) : "";
+  }
 
   // ── Shared helpers ──
 
@@ -117,6 +148,57 @@ let lastSection = ${JSON.stringify(this.firstSection)};
 const POST_AUDIO_GAP_MS = 400;
 const EPISODE_AUDIO_URL = ${JSON.stringify(this.episodeAudioURL)};
 const IS_EPISODE_AUDIO = ${this.isEpisodeAudioMode};
+const HORIZONTAL = ${this.isHorizontal};
+const EPISODE_IMAGE = ${JSON.stringify(this.episodeImageURI)};
+
+// ── Right media pane (horizontal layout) ────────────────────────────────────
+// Displays the active image/video on the right side. Media follows its parent
+// scope's lifecycle:
+//   • a dialogue image shows only while that dialogue is active; once it ends
+//     the pane falls back to the section image;
+//   • a section image shows across its section; once the section ends it falls
+//     back to the episode image.
+// Effective priority at any instant: active dialogue image > section image > episode image.
+function __isVideoSrc__(s) {
+  return /\\.(mp4|webm|mov|m4v|ogv)(\\?|#|$)/i.test(s);
+}
+function __mediaSrc__(d, ended) {
+  if (!d) return EPISODE_IMAGE || '';
+  var own = ended ? '' : (d.image || '');
+  return own || d.sectionImage || EPISODE_IMAGE || '';
+}
+// Show media for dialogue \`d\`. When \`ended\` is true the dialogue's own image is
+// dropped so the section/episode image shows during the gap after it finishes.
+function setMedia(d, ended) {
+  if (!HORIZONTAL) return;
+  var img = document.getElementById('pc-media-img');
+  var vid = document.getElementById('pc-media-video');
+  if (!img || !vid) return;
+  var src = __mediaSrc__(d, ended);
+  if (!src) {
+    img.style.display = 'none';
+    vid.style.display = 'none';
+    if (vid.pause) vid.pause();
+    return;
+  }
+  if (__isVideoSrc__(src)) {
+    img.style.display = 'none';
+    if (vid.getAttribute('src') !== src) vid.setAttribute('src', src);
+    vid.style.display = 'block';
+    if (vid.play) { var p = vid.play(); if (p && p.catch) p.catch(function() {}); }
+  } else {
+    vid.style.display = 'none';
+    if (vid.pause) vid.pause();
+    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+    img.style.display = 'block';
+  }
+}
+
+// Render a dialogue bubble and show its media (dialogue still active).
+function showMsg(d) {
+  appendMsg(d);
+  setMedia(d, false);
+}
 
 // ── Image-aware scrolling ───────────────────────────────────────────────────
 // Bubbles are scrolled into view the moment they're appended, but images load
@@ -155,8 +237,14 @@ function playEpisodeAudio() {
   audio.addEventListener('timeupdate', function() {
     var t = audio.currentTime;
     while (nextIdx < TOTAL && dialogues[nextIdx].timeStartSec <= t) {
-      appendMsg(dialogues[nextIdx]);
+      showMsg(dialogues[nextIdx]);
       nextIdx++;
+    }
+    // Media follows the active dialogue: once t passes its timeEndSec the
+    // dialogue image is dropped in favour of the section/episode image.
+    if (nextIdx > 0) {
+      var active = dialogues[nextIdx - 1];
+      setMedia(active, active.timeEndSec > 0 && t > active.timeEndSec);
     }
     if (nextIdx >= TOTAL) {
       document.body.dataset.done = '1';
@@ -165,7 +253,7 @@ function playEpisodeAudio() {
   audio.addEventListener('ended', function() {
     // Flush any remaining dialogues
     while (nextIdx < TOTAL) {
-      appendMsg(dialogues[nextIdx]);
+      showMsg(dialogues[nextIdx]);
       nextIdx++;
     }
     document.body.dataset.done = '1';
@@ -190,13 +278,16 @@ function playNext() {
   }
   const d = dialogues[idx];
   appendMsg(d);
+  setMedia(d, false);
   idx++;
 
   if (d.audio) {
     currentAudio = new Audio(d.audio);
-    currentAudio.onended = function() { setTimeout(playNext, POST_AUDIO_GAP_MS); };
-    currentAudio.onerror = function() { setTimeout(playNext, 2000); };
-    currentAudio.play().catch(function() { setTimeout(playNext, 2000); });
+    // When the clip ends, drop the dialogue image so the section/episode image
+    // shows during the gap before the next dialogue appears.
+    currentAudio.onended = function() { setMedia(d, true); setTimeout(playNext, POST_AUDIO_GAP_MS); };
+    currentAudio.onerror = function() { setMedia(d, true); setTimeout(playNext, 2000); };
+    currentAudio.play().catch(function() { setMedia(d, true); setTimeout(playNext, 2000); });
   } else {
     setTimeout(playNext, ${this.options.pauseMs});
   }
@@ -223,8 +314,18 @@ function initScrubberMode(timeline) {
       rendered < timeline.length &&
       timeline[rendered] <= nowMs
     ) {
-      appendMsg(dialogues[rendered]);
+      showMsg(dialogues[rendered]);
       rendered++;
+    }
+    // Media follows the active dialogue's lifecycle. A dialogue ends at
+    // timeline[i] + its audio duration; past that the pane reverts to the
+    // section image (and to the episode image once the section changes).
+    if (rendered > 0) {
+      var ai = rendered - 1;
+      var endMs = timeline[ai] + (dialogues[ai].audioDurationSec || 0) * 1000;
+      setMedia(dialogues[ai], nowMs > endMs);
+    } else {
+      setMedia(null, false);
     }
     if (rendered >= dialogues.length || rendered >= timeline.length) {
       document.body.dataset.done = '1';
@@ -233,6 +334,9 @@ function initScrubberMode(timeline) {
 }
 
 window.addEventListener('load', function() {
+  // Show the episode default image on the right pane before any dialogue.
+  setMedia(null, false);
+
   if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
     initScrubberMode(window.__TIMELINE__);
     return;
@@ -272,6 +376,57 @@ window.addEventListener('load', function() {
     const band = showBand
       ? `<div id="pc-bottom-band"><span>${this.escapeHTML(this.bottomLabel)}</span></div>`
       : "";
+
+    // Horizontal layout: chat stays in a portrait strip on the left; the right
+    // pane shows the active image/video (dialogue > section > episode).
+    const horizontalStyle = this.isHorizontal
+      ? `
+#pc-stage { flex-direction: row; }
+#pc-chat-pane {
+  flex: 0 0 ${this.chatPaneWidth}px;
+  width: ${this.chatPaneWidth}px;
+  height: 100%;
+  display: flex; flex-direction: column;
+}
+#pc-media-pane {
+  flex: 1 1 auto; min-width: 0; height: 100%;
+  position: relative; overflow: hidden; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+#pc-media-img, #pc-media-video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+#pc-media-label {
+  position: absolute; top: 18px; right: 18px; z-index: 2;
+  max-width: 70%; padding: 8px 16px; border-radius: 999px;
+  background: ${this.bottomBandBg}; color: ${this.bottomBandFg};
+  font-size: 22px; font-weight: 700; line-height: 1.2; text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}`
+      : "";
+
+    // In horizontal mode the show name moves from the bottom band to a
+    // top-right label overlaid on the media pane.
+    const mediaLabel = showBand
+      ? `<div id="pc-media-label">${this.escapeHTML(this.bottomLabel)}</div>`
+      : "";
+
+    const stageInner = this.isHorizontal
+      ? `<div id="pc-chat-pane">
+<div id="pc-content">
+${body}
+</div>
+</div>
+<div id="pc-media-pane">
+${mediaLabel}
+<img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
+<video id="pc-media-video" style="display:none" muted playsinline loop></video>
+</div>`
+      : `<div id="pc-content">
+${body}
+</div>
+${band}`;
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -288,16 +443,13 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 #pc-stage { width: 100%; height: 100%; display: flex; flex-direction: column; }
-#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }${bandStyle}
+#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }${bandStyle}${horizontalStyle}
 ${style}
 </style>
 </head>
 <body>
 <div id="pc-stage">
-<div id="pc-content">
-${body}
-</div>
-${band}
+${stageInner}
 </div>
 <script>
 ${script}

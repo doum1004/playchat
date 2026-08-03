@@ -38,8 +38,13 @@ export interface Section {
   section_title: string;
   section_type: string;
   corner_name: string;
+  /** Default image shown on the right pane (horizontal layout) for this section's dialogues. */
+  image?: string;
   dialogues: Dialogue[];
 }
+
+/** Frame orientation for the rendered chat. Defaults to "vertical". */
+export type Orientation = "vertical" | "horizontal";
 
 export interface Highlight {
   ids: number[];
@@ -57,6 +62,8 @@ export interface PodcastEpisode {
   summary: string;
   hosts: Host[];
   sections: Section[];
+  /** Default image shown on the right pane (horizontal layout) when no dialogue or section image applies. */
+  image?: string;
   /** Single audio file for the full episode (includes intro/outro music). */
   audio?: string;
   /** Optional curated highlight clips referencing dialogue IDs. */
@@ -72,6 +79,12 @@ export interface EngineOptions {
   showBottomBand: boolean;
   /** Bottom band height as a ratio of total viewport height. Default 0.12. */
   bottomHeightRatio: number;
+  /**
+   * Frame orientation. "vertical" (default) renders the classic 9:16 chat.
+   * "horizontal" renders a 16:9 frame with the chat on the left and an
+   * image/video pane on the right.
+   */
+  orientation: Orientation;
 }
 
 export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
@@ -79,6 +92,7 @@ export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
   showAvatar: true,
   showBottomBand: true,
   bottomHeightRatio: 0.12,
+  orientation: "vertical",
 };
 
 export interface FlatDialogue {
@@ -95,6 +109,10 @@ export interface FlatDialogue {
   image: string;
   /** Original image value before normalization (local path, URL, or empty) */
   imageRaw: string;
+  /** Normalized section default image URI (browser-usable). Empty string if none. */
+  sectionImage: string;
+  /** Original section image value before normalization (local path, URL, or empty) */
+  sectionImageRaw: string;
   /** Absolute start time in the episode audio (seconds). 0 if not set. */
   timeStartSec: number;
   /** Absolute end time in the episode audio (seconds). 0 if not set. */
@@ -121,6 +139,7 @@ export function normalizeAudioPath(audioPath: string, baseDir?: string): string 
 export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): FlatDialogue[] {
   const result: FlatDialogue[] = [];
   for (const section of episode.sections) {
+    const sectionImageRaw = section.image ?? "";
     for (const d of section.dialogues) {
       const imageRaw = d.image ?? "";
       result.push({
@@ -133,6 +152,8 @@ export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): Fla
         audioDurationSec: 0,
         image: normalizeAudioPath(imageRaw, baseDir),
         imageRaw,
+        sectionImage: normalizeAudioPath(sectionImageRaw, baseDir),
+        sectionImageRaw,
         timeStartSec: d.time_start ?? 0,
         timeEndSec: d.time_end ?? 0,
       });
