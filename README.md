@@ -394,6 +394,28 @@ npm install
 npx ts-node cli.ts episode.json --record
 ```
 
+This runs the TypeScript source directly, so no build step is needed — your
+latest edits are picked up on every run.
+
+### Testing the `playchat` command locally
+
+By default `npx playchat` runs the **published npm package**, not your local
+changes. To make the global `playchat` command resolve to your local build,
+link it once:
+
+```bash
+npm run build   # compiles TypeScript to dist/ (the bin is dist/cli.js)
+npm link        # symlinks the global `playchat` command to this checkout
+```
+
+After linking, `playchat ...` uses your local code. Because the `bin` points at
+the compiled `dist/cli.js`, **re-run `npm run build` after each source change**
+for the linked command to reflect it. To remove the link later:
+
+```bash
+npm unlink -g playchat
+```
+
 ### Testing
 
 ```bash
