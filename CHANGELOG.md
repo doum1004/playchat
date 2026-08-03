@@ -2,6 +2,20 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.2.0 — 2026-08-03
+
+### Changes
+
+- feat: update output files and manifests for example3, add playtime tracking to themes (928f257)
+- Add vertical layout support and media handling improvements (18a6382)
+- feat: add output files and manifest for example1 including images and video segments (fd20ef8)
+- feat: update example_horizontal output files and manifest for improved functionality (4d63fa4)
+
+**Full diff:** [v1.1.0...v1.2.0](https://github.com/doum1004/playchat/compare/v1.1.0...v1.2.0)
+
+---
+
+
 ## v1.1.0 — 2026-08-03
 
 ### Changes
