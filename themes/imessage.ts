@@ -164,6 +164,17 @@ const ME = ${JSON.stringify(this.meHostId)};
 const SHOW_AVATAR = ${this.showAvatar};
 const HOST_MAP = ${this.hostMapJSON};
 
+var _playTimeSec = 0;
+function getTime(audioDurationSec) {
+  var total = Math.floor(_playTimeSec);
+  var m = Math.floor(total / 60), s = total % 60;
+  var stamp = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  if (audioDurationSec && audioDurationSec > 0) {
+    _playTimeSec += audioDurationSec;
+  }
+  return stamp;
+}
+
 function avatarHTML(d) {
   var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
   var letter = '<span class="avatar-letter">' + info.letter + '</span>';
@@ -173,6 +184,7 @@ function avatarHTML(d) {
 
 function appendMsg(d) {
   var side = d.speaker === ME ? 'right' : 'left';
+  var t = getTime(d.audioDurationSec);
 
   if (d.section !== lastSection) {
     var div = document.createElement('div');
@@ -195,7 +207,7 @@ function appendMsg(d) {
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
         '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
-        '<span class="time-stamp"></span>' +
+        '<span class="time-stamp">' + t + '</span>' +
       '</div>' +
     '</div>';
   row.innerHTML = html;

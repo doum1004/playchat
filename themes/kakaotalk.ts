@@ -191,15 +191,13 @@ const ME = ${JSON.stringify(this.meHostId)};
 const SHOW_AVATAR = ${this.showAvatar};
 const HOST_MAP = ${this.hostMapJSON};
 
-var _virtualClockMs = Date.now();
+var _playTimeSec = 0;
 function getTime(audioDurationSec) {
-  var t = new Date(_virtualClockMs);
-  var h = t.getHours(), m = t.getMinutes();
-  var ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  var stamp = ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  var total = Math.floor(_playTimeSec);
+  var m = Math.floor(total / 60), s = total % 60;
+  var stamp = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   if (audioDurationSec && audioDurationSec > 0) {
-    _virtualClockMs += audioDurationSec * 1000;
+    _playTimeSec += audioDurationSec;
   }
   return stamp;
 }

@@ -205,15 +205,13 @@ const ME = "host_1";
 const SHOW_AVATAR = true;
 const HOST_MAP = {"host_1":{"letter":"민","bg":"#f9e000","fg":"#3c2e00","image":"","bubbleBg":"#f9e000","bubbleFg":"#1a1a1a"},"host_2":{"letter":"A","bg":"#ff7043","fg":"#fff","image":"","bubbleBg":"#fff","bubbleFg":"#1a1a1a"}};
 
-var _virtualClockMs = Date.now();
+var _playTimeSec = 0;
 function getTime(audioDurationSec) {
-  var t = new Date(_virtualClockMs);
-  var h = t.getHours(), m = t.getMinutes();
-  var ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  var stamp = ampm + ' ' + h + ':' + (m < 10 ? '0' : '') + m;
+  var total = Math.floor(_playTimeSec);
+  var m = Math.floor(total / 60), s = total % 60;
+  var stamp = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   if (audioDurationSec && audioDurationSec > 0) {
-    _virtualClockMs += audioDurationSec * 1000;
+    _playTimeSec += audioDurationSec;
   }
   return stamp;
 }
