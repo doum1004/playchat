@@ -2,6 +2,20 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.1.0 — 2026-08-03
+
+### Changes
+
+- feat: add horizontal layout support for chat themes (d1c07d4)
+- feat: add bottom branding band option to themes and update documentation (b0162cb)
+- feat: update themes and assets for improved UI and functionality (e42faa6)
+- Add WeChat theme support with associated assets and HTML structure (90d2d75)
+
+**Full diff:** [v1.0.2...v1.1.0](https://github.com/doum1004/playchat/compare/v1.0.2...v1.1.0)
+
+---
+
+
 ## v1.0.2 — 2026-06-05
 
 ### Changes
