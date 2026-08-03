@@ -29,6 +29,15 @@ html, body {
   height: 100%;
   display: flex; flex-direction: column;
 }
+#pc-chat-pane #pc-content { overflow: hidden; }
+/* Scale the chat root down so text is smaller and more messages are visible.
+   The root is up-sized to 1/scale so that after scaling it fills the pane. */
+#pc-chat-pane #pc-content > * {
+  transform: scale(0.8);
+  transform-origin: top left;
+  width: 125.0000%;
+  height: 125.0000%;
+}
 #pc-media-pane {
   flex: 1 1 auto; min-width: 0; height: 100%;
   position: relative; overflow: hidden; background: #000;

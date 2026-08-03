@@ -64,6 +64,16 @@ export abstract class BaseTheme {
     return Math.round(this.viewport.width * 0.45);
   }
 
+  /**
+   * Content scale applied to the chat pane in horizontal layout. Themes use px
+   * font sizes tuned for the taller vertical viewport, so in the shorter
+   * horizontal strip they render large and only a few messages fit. Scaling the
+   * whole chat root down makes text smaller and shows more messages at once.
+   */
+  protected get horizontalChatScale(): number {
+    return 0.8;
+  }
+
   /** Browser-usable URI of the episode-level default image (right pane). */
   protected get episodeImageURI(): string {
     const img = this.episode.image ?? "";
@@ -423,6 +433,8 @@ window.addEventListener('load', function() {
 
     // Horizontal layout: chat stays in a portrait strip on the left; the right
     // pane shows the active image/video (dialogue > section > episode).
+    const hScale = this.horizontalChatScale;
+    const hInvPct = (100 / hScale).toFixed(4); // up-size before scaling down
     const horizontalStyle = this.isHorizontal
       ? `
 #pc-stage { flex-direction: row; }
@@ -431,6 +443,15 @@ window.addEventListener('load', function() {
   width: ${this.chatPaneWidth}px;
   height: 100%;
   display: flex; flex-direction: column;
+}
+#pc-chat-pane #pc-content { overflow: hidden; }
+/* Scale the chat root down so text is smaller and more messages are visible.
+   The root is up-sized to 1/scale so that after scaling it fills the pane. */
+#pc-chat-pane #pc-content > * {
+  transform: scale(${hScale});
+  transform-origin: top left;
+  width: ${hInvPct}%;
+  height: ${hInvPct}%;
 }
 #pc-media-pane {
   flex: 1 1 auto; min-width: 0; height: 100%;
