@@ -200,6 +200,48 @@ function showMsg(d) {
   setMedia(d, false);
 }
 
+// ── Inline bubble thumbnails (vertical layout) ──────────────────────────────
+// Vertical themes render images inline in the chat as bubble thumbnails. Unlike
+// the horizontal pane (which swaps a single persistent media by priority), each
+// scope's image simply appears once, at the point its scope begins:
+//   • the episode image is shown as a banner at the top when the chat starts
+//     (see showEpisodeBanner — it does not wait for the first dialogue);
+//   • a section image is shown on the first bubble of that section;
+//   • a dialogue image is shown on its own bubble.
+// These are independent (no priority/fallback). Returns [] in horizontal mode
+// (media shows in the right pane instead).
+var __lastSectionImgKey__ = null;
+function bubbleImages(d) {
+  if (HORIZONTAL || !d) return [];
+  var out = [];
+  if (d.section !== __lastSectionImgKey__) {
+    __lastSectionImgKey__ = d.section;
+    if (d.sectionImage) out.push(d.sectionImage);
+  }
+  if (d.image) out.push(d.image);
+  return out;
+}
+
+// Episode banner: shown at the top of the chat the moment the episode starts,
+// independent of any dialogue. Vertical layout only (horizontal uses the right
+// media pane). Self-styled so no per-theme CSS is required.
+function showEpisodeBanner() {
+  if (HORIZONTAL || !EPISODE_IMAGE) return;
+  var body = document.getElementById('chat-body');
+  if (!body || document.getElementById('pc-episode-banner')) return;
+  var img = document.createElement('img');
+  img.id = 'pc-episode-banner';
+  img.src = EPISODE_IMAGE;
+  img.style.cssText = 'display:block;width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin:8px 0 10px;';
+  img.onload = function() { window.__imgLoaded__ && window.__imgLoaded__(); };
+  img.onerror = function() { img.remove(); };
+  // Place just above the first section divider (and below the date divider,
+  // where a theme has one) so the episode image leads the chat content.
+  var anchor = body.querySelector('.section-divider');
+  if (anchor) body.insertBefore(img, anchor);
+  else body.insertBefore(img, body.firstChild);
+}
+
 // ── Image-aware scrolling ───────────────────────────────────────────────────
 // Bubbles are scrolled into view the moment they're appended, but images load
 // asynchronously and report height 0 until decoded. Re-scroll once each image
@@ -336,6 +378,8 @@ function initScrubberMode(timeline) {
 window.addEventListener('load', function() {
   // Show the episode default image on the right pane before any dialogue.
   setMedia(null, false);
+  // Vertical layout: show the episode image as a banner right away.
+  showEpisodeBanner();
 
   if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
     initScrubberMode(window.__TIMELINE__);

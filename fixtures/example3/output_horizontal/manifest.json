@@ -1,0 +1,15 @@
+{
+  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\example3\\episode.json",
+  "theme": "kakaotalk",
+  "pauseMs": 3000,
+  "showAvatar": true,
+  "showBottomBand": true,
+  "createdAt": "2026-08-03T06:23:02.324Z",
+  "files": {
+    "html": "output.html",
+    "mp4": "output.mp4",
+    "firstBubblePng": "first_bubble.png",
+    "lastBubblePng": "last_bubble.png"
+  },
+  "dialogueCount": 5
+}

@@ -243,7 +243,8 @@ function appendMsg(d) {
   if (SHOW_AVATAR) html += avatarHTML(d);
   html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
   if (SHOW_AVATAR) html += '<div class="sender-name' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
-  if (d.image && !HORIZONTAL) html += '<img class="bubble-img ' + side + '" src="' + d.image + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
+  var __bimgs = bubbleImages(d);
+  for (var __i = 0; __i < __bimgs.length; __i++) html += '<img class="bubble-img ' + side + '" src="' + __bimgs[__i] + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
   var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
   var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
@@ -259,7 +260,7 @@ function appendMsg(d) {
 }
 
 
-const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/d44e091b6a5b2602.mp3","imageRaw":"https://images.unsplash.com/photo-1785294476300-e2828a05f7f7?q=80\u0026w=1330\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","sectionImage":"","sectionImageRaw":"","timeStartSec":32.3,"timeEndSec":38}];
+const dialogues = [{"speaker":"host_1","name":"민수","text":"여러분, 톡톡 영어에 오신 걸 환영합니다! 오늘도 자연스럽고 살아있는 영어, 함께 배워볼까요?","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/cc244236af424699/segment_0000.mp3","section":"[톡톡 인사말]","audioDurationSec":6.5,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":8,"timeEndSec":14.5},{"speaker":"host_2","name":"Ashley","text":"Hi everyone! Today's phrase is all about asking for help in a very natural way. Let's get started!","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/c771c9018d984cbc/segment_0001.mp3","section":"[톡톡 인사말]","audioDurationSec":5.399999999999999,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/85e1894b6eae4e46.jpg","imageRaw":"https://live.staticflickr.com/5145/5851641484_36762ab9af_b.jpg","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":14.8,"timeEndSec":20.2},{"speaker":"host_1","name":"민수","text":"Oh, 제일 필요한 표현인데요! 오늘의 표현은 'Could you give me a hand?'예요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/4d268c8faf774183/segment_0002.mp3","section":"[톡톡 인사말]","audioDurationSec":5.5,"image":"","imageRaw":"","sectionImage":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/7e1af094aac52365.mp3","sectionImageRaw":"https://images.unsplash.com/photo-1785288198012-cd67954dd412?q=80\u0026w=1271\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","timeStartSec":20.5,"timeEndSec":26},{"speaker":"host_1","name":"민수","text":"Ashley, 오늘 짐 옮기는데 좀 도와줄 수 있어요? 무거워서 혼자 못 하겠어요.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/ee016cde93ea4f05/segment_0004.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.699999999999999,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":26.3,"timeEndSec":32},{"speaker":"host_2","name":"Ashley","text":"Sure! That's when you can say, 'Could you give me a hand with this?' Let me help you.","audio":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","audioRaw":"https://storage.googleapis.com/maplesoup-stroage-bucket/f/podcast/803591e8239d4493/segment_0005.mp3","section":"[실전 영어 상황극]","audioDurationSec":5.700000000000003,"image":"file:///C:/Users/alexlee/AppData/Roaming/playchat/cache/d44e091b6a5b2602.mp3","imageRaw":"https://images.unsplash.com/photo-1785294476300-e2828a05f7f7?q=80\u0026w=1330\u0026auto=format\u0026fit=crop\u0026ixlib=rb-4.1.0\u0026ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D","sectionImage":"","sectionImageRaw":"","timeStartSec":32.3,"timeEndSec":38}];
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = "[톡톡 인사말]";
@@ -316,6 +317,48 @@ function setMedia(d, ended) {
 function showMsg(d) {
   appendMsg(d);
   setMedia(d, false);
+}
+
+// ── Inline bubble thumbnails (vertical layout) ──────────────────────────────
+// Vertical themes render images inline in the chat as bubble thumbnails. Unlike
+// the horizontal pane (which swaps a single persistent media by priority), each
+// scope's image simply appears once, at the point its scope begins:
+//   • the episode image is shown as a banner at the top when the chat starts
+//     (see showEpisodeBanner — it does not wait for the first dialogue);
+//   • a section image is shown on the first bubble of that section;
+//   • a dialogue image is shown on its own bubble.
+// These are independent (no priority/fallback). Returns [] in horizontal mode
+// (media shows in the right pane instead).
+var __lastSectionImgKey__ = null;
+function bubbleImages(d) {
+  if (HORIZONTAL || !d) return [];
+  var out = [];
+  if (d.section !== __lastSectionImgKey__) {
+    __lastSectionImgKey__ = d.section;
+    if (d.sectionImage) out.push(d.sectionImage);
+  }
+  if (d.image) out.push(d.image);
+  return out;
+}
+
+// Episode banner: shown at the top of the chat the moment the episode starts,
+// independent of any dialogue. Vertical layout only (horizontal uses the right
+// media pane). Self-styled so no per-theme CSS is required.
+function showEpisodeBanner() {
+  if (HORIZONTAL || !EPISODE_IMAGE) return;
+  var body = document.getElementById('chat-body');
+  if (!body || document.getElementById('pc-episode-banner')) return;
+  var img = document.createElement('img');
+  img.id = 'pc-episode-banner';
+  img.src = EPISODE_IMAGE;
+  img.style.cssText = 'display:block;width:100%;max-height:280px;object-fit:cover;border-radius:12px;margin:8px 0 10px;';
+  img.onload = function() { window.__imgLoaded__ && window.__imgLoaded__(); };
+  img.onerror = function() { img.remove(); };
+  // Place just above the first section divider (and below the date divider,
+  // where a theme has one) so the episode image leads the chat content.
+  var anchor = body.querySelector('.section-divider');
+  if (anchor) body.insertBefore(img, anchor);
+  else body.insertBefore(img, body.firstChild);
 }
 
 // ── Image-aware scrolling ───────────────────────────────────────────────────
@@ -454,6 +497,8 @@ function initScrubberMode(timeline) {
 window.addEventListener('load', function() {
   // Show the episode default image on the right pane before any dialogue.
   setMedia(null, false);
+  // Vertical layout: show the episode image as a banner right away.
+  showEpisodeBanner();
 
   if (Array.isArray(window.__TIMELINE__) && window.__TIMELINE__.length > 0) {
     initScrubberMode(window.__TIMELINE__);
