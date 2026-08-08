@@ -50,7 +50,7 @@ npx playchat episode.json --record --orientation horizontal --resolution 4k
 ## CLI Options
 
 ```
-npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--orientation <o>] [--resolution <r>] [--no-avatar] [--no-bottom]
+npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segments] [--theme <id>] [--pause <ms>] [--orientation <o>] [--resolution <r>] [--color <c>] [--no-avatar] [--no-bottom]
 ```
 
 | Flag | Default | Description |
@@ -63,6 +63,7 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
 | `--orientation <o>` | `vertical` | Frame orientation: `vertical` (9:16) or `horizontal` (16:9) |
 | `--resolution <r>` | `1k` | Output resolution: `1k`, `2k`, or `4k` |
+| `--color <c>` | `dark` | Color scheme applied across every theme: `light` or `dark` |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
 | `--no-bottom` | _(off)_ | Hide the show-name band/label (shown by default) |
 

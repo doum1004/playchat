@@ -1,0 +1,28 @@
+{
+  "input": "C:\\Workspace\\Personal\\playchat\\fixtures\\example4_color\\episode.json",
+  "theme": "wechat",
+  "pauseMs": 3000,
+  "showAvatar": true,
+  "showBottomBand": true,
+  "colorTheme": "dark",
+  "createdAt": "2026-08-08T20:30:54.388Z",
+  "files": {
+    "html": "output.html",
+    "mp4": "output.mp4",
+    "firstBubblePng": "first_bubble.png",
+    "lastBubblePng": "last_bubble.png",
+    "segments": [
+      {
+        "sectionId": 1,
+        "sectionTitle": "톡톡 인사말",
+        "mp4": "segments\\section_1_.mp4"
+      },
+      {
+        "sectionId": 2,
+        "sectionTitle": "실전 영어 상황극",
+        "mp4": "segments\\section_2_.mp4"
+      }
+    ]
+  },
+  "dialogueCount": 5
+}

@@ -782,6 +782,7 @@ interface Manifest {
   pauseMs: number;
   showAvatar: boolean;
   showBottomBand: boolean;
+  colorTheme: string;
   createdAt: string;
   files: ManifestFiles;
   dialogueCount: number;
@@ -822,6 +823,7 @@ Options:
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
   --resolution <r> Output resolution: 1k (1080p), 2k (1440p), 4k (2160p) [default: 1k]
   --orientation <o> Frame orientation: vertical (9:16) or horizontal (16:9) [default: vertical]
+  --color <c>     Color scheme: light or dark [default: dark]
   --no-avatar     Hide avatar circles and sender names
   --no-bottom     Hide the bottom show-name band (shown by default using the JSON "name" field)
 
@@ -853,6 +855,11 @@ Examples:
   const orientation = (parseFlag(args, "--orientation") || "vertical").toLowerCase();
   if (orientation !== "vertical" && orientation !== "horizontal") {
     console.error(`Invalid --orientation "${orientation}". Valid: vertical, horizontal`);
+    process.exit(1);
+  }
+  const colorTheme = (parseFlag(args, "--color") || "dark").toLowerCase();
+  if (colorTheme !== "light" && colorTheme !== "dark") {
+    console.error(`Invalid --color "${colorTheme}". Valid: light, dark`);
     process.exit(1);
   }
   const showAvatar = !args.includes("--no-avatar");
@@ -938,7 +945,7 @@ Examples:
 
   let theme;
   try {
-    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar, showBottomBand, orientation });
+    theme = getTheme(themeId, episode, dialogues, { pauseMs, showAvatar, showBottomBand, orientation, colorTheme });
   } catch (e: unknown) {
     console.error((e as Error).message);
     process.exit(1);
@@ -959,6 +966,7 @@ Examples:
       pauseMs,
       showAvatar,
       showBottomBand,
+      colorTheme,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
       dialogueCount: dialogues.length,
@@ -1150,6 +1158,7 @@ Examples:
       pauseMs,
       showAvatar,
       showBottomBand,
+      colorTheme,
       createdAt: new Date().toISOString(),
       files: manifestFiles,
       dialogueCount: dialogues.length,

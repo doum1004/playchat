@@ -1,4 +1,4 @@
-import { PodcastEpisode, FlatDialogue, EngineOptions, Orientation, DEFAULT_ENGINE_OPTIONS, normalizeAudioPath } from "../core/types";
+import { PodcastEpisode, FlatDialogue, EngineOptions, Orientation, ColorTheme, DEFAULT_ENGINE_OPTIONS, normalizeAudioPath } from "../core/types";
 
 export interface ThemeConfig {
   width: number;
@@ -49,6 +49,15 @@ export abstract class BaseTheme {
 
   protected get isHorizontal(): boolean {
     return this.orientation === "horizontal";
+  }
+
+  /** Color scheme from engine options (CLI-driven). Defaults to "light". */
+  get colorTheme(): ColorTheme {
+    return this.options.colorTheme === "dark" ? "dark" : "light";
+  }
+
+  protected get isDark(): boolean {
+    return this.colorTheme === "dark";
   }
 
   /** Viewport depends on orientation: 9:16 vertical (default) or 16:9 horizontal. */

@@ -12,9 +12,50 @@ export class KakaoTalkTheme extends BaseTheme {
     return this.wrapHTML(this.css, this.html, this.js);
   }
 
+  /** Chrome colors for the current color scheme (light default, dark variant). */
+  private get palette() {
+    if (this.isDark) {
+      return {
+        headerBg: "#1b1b1b",
+        bodyBg: "#1e1e1e",
+        leftBubbleBg: "#3a3a3c",
+        leftBubbleFg: "#f2f2f2",
+        dateDividerBg: "rgba(255,255,255,0.14)",
+        dateDividerFg: "#fff",
+        sectionDividerBg: "rgba(255,255,255,0.12)",
+        sectionDividerFg: "rgba(255,255,255,0.75)",
+        senderNameFg: "rgba(255,255,255,0.6)",
+        timeStampFg: "rgba(255,255,255,0.4)",
+        footerBg: "#232323",
+        footerBorder: "#333",
+        inputBg: "#2c2c2c",
+        inputBorder: "#333",
+        inputFg: "#888",
+      };
+    }
+    return {
+      headerBg: "#3c1e1e",
+      bodyBg: "#b2c7d9",
+      leftBubbleBg: "#fff",
+      leftBubbleFg: "#1a1a1a",
+      dateDividerBg: "rgba(0,0,0,0.18)",
+      dateDividerFg: "#fff",
+      sectionDividerBg: "rgba(0,0,0,0.12)",
+      sectionDividerFg: "rgba(255,255,255,0.9)",
+      senderNameFg: "rgba(0,0,0,0.55)",
+      timeStampFg: "rgba(0,0,0,0.4)",
+      footerBg: "#f0f0f0",
+      footerBorder: "#d0d0d0",
+      inputBg: "#fff",
+      inputBorder: "#d0d0d0",
+      inputFg: "#999",
+    };
+  }
+
   // ── CSS ──
 
   private get css(): string {
+    const p = this.palette;
     return `
 .device {
   width: 100%; height: 100%;
@@ -23,7 +64,7 @@ export class KakaoTalkTheme extends BaseTheme {
 }
 
 .kk-header {
-  background: #3c1e1e;
+  background: ${p.headerBg};
   padding: 16px 22px 14px;
   display: flex; align-items: center; gap: 14px;
   flex-shrink: 0;
@@ -37,7 +78,7 @@ export class KakaoTalkTheme extends BaseTheme {
 .kk-count { color: rgba(255,255,255,0.55); font-size: 18px; white-space: nowrap; }
 
 .kk-body {
-  background: #b2c7d9;
+  background: ${p.bodyBg};
   flex: 1; overflow-y: auto;
   padding: 16px 14px;
   display: flex; flex-direction: column; gap: 6px;
@@ -46,13 +87,13 @@ export class KakaoTalkTheme extends BaseTheme {
 
 .date-divider { text-align: center; margin: 8px 0 11px; }
 .date-divider span {
-  background: rgba(0,0,0,0.18); color: #fff;
+  background: ${p.dateDividerBg}; color: ${p.dateDividerFg};
   font-size: 15px; padding: 4px 16px; border-radius: 20px;
 }
 
 .section-divider { text-align: center; margin: 11px 0 6px; }
 .section-divider span {
-  background: rgba(0,0,0,0.12); color: rgba(255,255,255,0.9);
+  background: ${p.sectionDividerBg}; color: ${p.sectionDividerFg};
   font-size: 14px; padding: 3px 14px; border-radius: 20px; font-weight: 500;
 }
 
@@ -88,7 +129,7 @@ export class KakaoTalkTheme extends BaseTheme {
 .msg-col { display: flex; flex-direction: column; max-width: 68%; }
 .msg-col.right { align-items: flex-end; }
 
-.sender-name { font-size: 15px; color: rgba(0,0,0,0.55); margin-bottom: 4px; padding-left: 3px; }
+.sender-name { font-size: 15px; color: ${p.senderNameFg}; margin-bottom: 4px; padding-left: 3px; }
 .sender-name.right { padding-left: 0; padding-right: 3px; }
 
 .bubble-wrap { display: flex; align-items: flex-end; gap: 6px; }
@@ -96,10 +137,10 @@ export class KakaoTalkTheme extends BaseTheme {
 
 .bubble {
   padding: 11px 15px; font-size: 18px; line-height: 1.5;
-  color: #1a1a1a; max-width: 100%; word-break: break-word;
+  color: ${p.leftBubbleFg}; max-width: 100%; word-break: break-word;
 }
-.bubble.left  { background: #fff;    border-radius: 0 16px 16px 16px; }
-.bubble.right { background: #f9e000; border-radius: 16px 0 16px 16px; }
+.bubble.left  { background: ${p.leftBubbleBg}; border-radius: 0 16px 16px 16px; }
+.bubble.right { background: #f9e000; color: #1a1a1a; border-radius: 16px 0 16px 16px; }
 .bubble.pop   { animation: popIn 0.2s ease-out; }
 
 @keyframes popIn {
@@ -107,7 +148,7 @@ export class KakaoTalkTheme extends BaseTheme {
   to   { opacity: 1; transform: scale(1); }
 }
 
-.time-stamp { font-size: 14px; color: rgba(0,0,0,0.4); white-space: nowrap; margin-bottom: 2px; }
+.time-stamp { font-size: 14px; color: ${p.timeStampFg}; white-space: nowrap; margin-bottom: 2px; }
 
 .bubble-img {
   max-width: 100%; max-height: 280px; width: auto; display: block;
@@ -118,13 +159,13 @@ export class KakaoTalkTheme extends BaseTheme {
 .bubble-img.right { border-radius: 16px 0 16px 16px; }
 
 .kk-footer {
-  background: #f0f0f0; border-top: 0.5px solid #d0d0d0;
+  background: ${p.footerBg}; border-top: 0.5px solid ${p.footerBorder};
   padding: 11px 16px; display: flex; align-items: center; gap: 11px;
   flex-shrink: 0;
 }
 .kk-input {
-  flex: 1; background: #fff; border: 0.5px solid #d0d0d0;
-  border-radius: 24px; padding: 10px 18px; font-size: 18px; color: #999;
+  flex: 1; background: ${p.inputBg}; border: 0.5px solid ${p.inputBorder};
+  border-radius: 24px; padding: 10px 18px; font-size: 18px; color: ${p.inputFg};
 }
 .kk-send {
   width: 44px; height: 44px; background: #f9e000; border-radius: 50%;
@@ -163,8 +204,12 @@ export class KakaoTalkTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#f9e000", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
     const textColors = ["#3c2e00", "#fff", "#fff", "#fff", "#fff"];
-    const bubbleBgs = ["#f9e000", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
-    const bubbleFgs = ["#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a"];
+    const bubbleBgs = this.isDark
+      ? ["#f9e000", "#3a3a3c", "#2e4b34", "#2c3e52", "#3f2e52"]
+      : ["#f9e000", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
+    const bubbleFgs = this.isDark
+      ? ["#1a1a1a", "#f2f2f2", "#f2f2f2", "#f2f2f2", "#f2f2f2"]
+      : ["#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a"];
     const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {

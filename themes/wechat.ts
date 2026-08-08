@@ -12,9 +12,58 @@ export class WeChatTheme extends BaseTheme {
     return this.wrapHTML(this.css, this.html, this.js);
   }
 
+  /** Chrome colors for the current color scheme (light default, dark variant). */
+  private get palette() {
+    if (this.isDark) {
+      return {
+        headerBg: "#1a1a1a",
+        headerBorder: "#2a2a2a",
+        chromeFg: "#e6e6e6",
+        bodyBg: "#161616",
+        timeDividerBg: "rgba(255,255,255,0.1)",
+        timeDividerFg: "#ccc",
+        sectionDividerBg: "rgba(255,255,255,0.08)",
+        sectionDividerFg: "#8a8a8a",
+        timeStampFg: "rgba(255,255,255,0.35)",
+        senderNameFg: "#8a8a8a",
+        leftBubbleBg: "#2c2c2c",
+        leftBubbleFg: "#e6e6e6",
+        rightBubbleBg: "#3eb575",
+        footerBg: "#1f1f1f",
+        footerBorder: "#2a2a2a",
+        inputBg: "#2c2c2c",
+        inputBorder: "#2a2a2a",
+        inputFg: "#e6e6e6",
+        extraFg: "#8a8a8a",
+      };
+    }
+    return {
+      headerBg: "#ededed",
+      headerBorder: "#d4d4d4",
+      chromeFg: "#181818",
+      bodyBg: "#ededed",
+      timeDividerBg: "rgba(0,0,0,0.12)",
+      timeDividerFg: "#fff",
+      sectionDividerBg: "rgba(0,0,0,0.1)",
+      sectionDividerFg: "#8a8a8a",
+      timeStampFg: "rgba(0,0,0,0.4)",
+      senderNameFg: "#9b9b9b",
+      leftBubbleBg: "#fff",
+      leftBubbleFg: "#181818",
+      rightBubbleBg: "#95ec69",
+      footerBg: "#f7f7f7",
+      footerBorder: "#d4d4d4",
+      inputBg: "#fff",
+      inputBorder: "#d4d4d4",
+      inputFg: "#181818",
+      extraFg: "#54565a",
+    };
+  }
+
   // ── CSS ──
 
   private get css(): string {
+    const p = this.palette;
     return `
 .device {
   width: 100%; height: 100%;
@@ -23,22 +72,22 @@ export class WeChatTheme extends BaseTheme {
 }
 
 .wc-header {
-  background: #ededed;
-  border-bottom: 0.5px solid #d4d4d4;
+  background: ${p.headerBg};
+  border-bottom: 0.5px solid ${p.headerBorder};
   padding: 16px 22px 14px;
   display: flex; align-items: center; gap: 14px;
   flex-shrink: 0;
 }
-.wc-back { color: #181818; font-size: 24px; font-weight: 500; }
+.wc-back { color: ${p.chromeFg}; font-size: 24px; font-weight: 500; }
 .wc-room-name {
-  color: #181818; font-size: 21px; font-weight: 500; flex: 1; text-align: center;
+  color: ${p.chromeFg}; font-size: 21px; font-weight: 500; flex: 1; text-align: center;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   min-width: 0;
 }
-.wc-menu { color: #181818; font-size: 24px; font-weight: 700; white-space: nowrap; letter-spacing: 1px; }
+.wc-menu { color: ${p.chromeFg}; font-size: 24px; font-weight: 700; white-space: nowrap; letter-spacing: 1px; }
 
 .wc-body {
-  background: #ededed;
+  background: ${p.bodyBg};
   flex: 1; overflow-y: auto;
   padding: 16px 16px;
   display: flex; flex-direction: column; gap: 16px;
@@ -47,17 +96,17 @@ export class WeChatTheme extends BaseTheme {
 
 .time-divider { text-align: center; margin: 3px 0; }
 .time-divider span {
-  background: rgba(0,0,0,0.12); color: #fff;
+  background: ${p.timeDividerBg}; color: ${p.timeDividerFg};
   font-size: 15px; padding: 3px 11px; border-radius: 5px;
 }
 
 .section-divider { text-align: center; margin: 3px 0; }
 .section-divider span {
-  background: rgba(0,0,0,0.1); color: #8a8a8a;
+  background: ${p.sectionDividerBg}; color: ${p.sectionDividerFg};
   font-size: 15px; padding: 3px 13px; border-radius: 5px;
 }
 
-.time-stamp { font-size: 13px; color: rgba(0,0,0,0.4); white-space: nowrap; margin-top: 2px; }
+.time-stamp { font-size: 13px; color: ${p.timeStampFg}; white-space: nowrap; margin-top: 2px; }
 
 .msg-row { display: flex; align-items: flex-start; gap: 11px; }
 .msg-row.right { flex-direction: row-reverse; }
@@ -91,7 +140,7 @@ export class WeChatTheme extends BaseTheme {
 .msg-col { display: flex; flex-direction: column; max-width: 70%; }
 .msg-col.right { align-items: flex-end; }
 
-.sender-name { font-size: 15px; color: #9b9b9b; margin-bottom: 5px; padding-left: 3px; }
+.sender-name { font-size: 15px; color: ${p.senderNameFg}; margin-bottom: 5px; padding-left: 3px; }
 .sender-name.right { padding-left: 0; padding-right: 3px; }
 
 .bubble-wrap { display: flex; align-items: flex-start; }
@@ -99,7 +148,7 @@ export class WeChatTheme extends BaseTheme {
 .bubble {
   position: relative;
   padding: 12px 16px; font-size: 19px; line-height: 1.4;
-  color: #181818; max-width: 100%; word-break: break-word;
+  color: ${p.leftBubbleFg}; max-width: 100%; word-break: break-word;
   border-radius: 6px;
 }
 /* speech-bubble tail */
@@ -108,13 +157,13 @@ export class WeChatTheme extends BaseTheme {
   width: 0; height: 0;
   border: 8px solid transparent;
 }
-.bubble.left  { background: #fff; }
+.bubble.left  { background: ${p.leftBubbleBg}; }
 .bubble.left::before {
-  left: -15px; border-right-color: var(--bubble-bg, #fff);
+  left: -15px; border-right-color: var(--bubble-bg, ${p.leftBubbleBg});
 }
-.bubble.right { background: #95ec69; }
+.bubble.right { background: ${p.rightBubbleBg}; }
 .bubble.right::before {
-  right: -15px; border-left-color: var(--bubble-bg, #95ec69);
+  right: -15px; border-left-color: var(--bubble-bg, ${p.rightBubbleBg});
 }
 .bubble.pop   { animation: popIn 0.2s ease-out; }
 
@@ -131,7 +180,7 @@ export class WeChatTheme extends BaseTheme {
 }
 
 .wc-footer {
-  background: #f7f7f7; border-top: 0.5px solid #d4d4d4;
+  background: ${p.footerBg}; border-top: 0.5px solid ${p.footerBorder};
   padding: 11px 16px; display: flex; align-items: center; gap: 11px;
   flex-shrink: 0;
 }
@@ -140,12 +189,12 @@ export class WeChatTheme extends BaseTheme {
   display: flex; align-items: center; justify-content: center;
 }
 .wc-input {
-  flex: 1; background: #fff; border: 0.5px solid #d4d4d4;
-  border-radius: 6px; padding: 10px 18px; font-size: 19px; color: #181818;
+  flex: 1; background: ${p.inputBg}; border: 0.5px solid ${p.inputBorder};
+  border-radius: 6px; padding: 10px 18px; font-size: 19px; color: ${p.inputFg};
   min-height: 46px;
 }
 .wc-extra {
-  width: 40px; height: 40px; flex-shrink: 0; color: #54565a;
+  width: 40px; height: 40px; flex-shrink: 0; color: ${p.extraFg};
   display: flex; align-items: center; justify-content: center; font-size: 30px;
 }`;
   }
@@ -184,8 +233,12 @@ export class WeChatTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#95ec69", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
     const textColors = ["#181818", "#fff", "#fff", "#fff", "#fff"];
-    const bubbleBgs = ["#95ec69", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
-    const bubbleFgs = ["#181818", "#181818", "#181818", "#181818", "#181818"];
+    const bubbleBgs = this.isDark
+      ? ["#3eb575", "#2c2c2c", "#2e4b34", "#2c3e52", "#3f2e52"]
+      : ["#95ec69", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
+    const bubbleFgs = this.isDark
+      ? ["#eafff0", "#e6e6e6", "#e6e6e6", "#e6e6e6", "#e6e6e6"]
+      : ["#181818", "#181818", "#181818", "#181818", "#181818"];
     const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {

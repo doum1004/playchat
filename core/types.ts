@@ -46,6 +46,9 @@ export interface Section {
 /** Frame orientation for the rendered chat. Defaults to "vertical". */
 export type Orientation = "vertical" | "horizontal";
 
+/** Color scheme for the rendered chat. Defaults to "dark". */
+export type ColorTheme = "light" | "dark";
+
 export interface Highlight {
   ids: number[];
   title: string;
@@ -85,6 +88,11 @@ export interface EngineOptions {
    * image/video pane on the right.
    */
   orientation: Orientation;
+  /**
+   * Color scheme applied across every theme. "dark" (default) renders each
+   * app's dark-mode palette; "light" renders the classic light appearance.
+   */
+  colorTheme: ColorTheme;
 }
 
 export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
@@ -93,6 +101,7 @@ export const DEFAULT_ENGINE_OPTIONS: EngineOptions = {
   showBottomBand: true,
   bottomHeightRatio: 0.12,
   orientation: "vertical",
+  colorTheme: "dark",
 };
 
 export interface FlatDialogue {

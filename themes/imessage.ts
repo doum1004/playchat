@@ -12,30 +12,73 @@ export class IMessageTheme extends BaseTheme {
     return this.wrapHTML(this.css, this.html, this.js);
   }
 
+  /** Chrome colors for the current color scheme (light default, dark variant). */
+  private get palette() {
+    if (this.isDark) {
+      return {
+        deviceBg: "#000",
+        headerBg: "#1c1c1e",
+        headerBorder: "#38383a",
+        titleFg: "#fff",
+        subtitleFg: "#8e8e93",
+        bodyBg: "#000",
+        sectionDividerFg: "#8e8e93",
+        leftBubbleBg: "#26262a",
+        leftBubbleFg: "#fff",
+        senderLabelFg: "#8e8e93",
+        timeStampFg: "#8e8e93",
+        footerBg: "#1c1c1e",
+        footerBorder: "#38383a",
+        inputBg: "#1c1c1e",
+        inputBorder: "#38383a",
+        inputFg: "#8e8e93",
+      };
+    }
+    return {
+      deviceBg: "#fff",
+      headerBg: "#f6f6f6",
+      headerBorder: "#c8c8c8",
+      titleFg: "#000",
+      subtitleFg: "#8e8e93",
+      bodyBg: "#fff",
+      sectionDividerFg: "#8e8e93",
+      leftBubbleBg: "#e9e9eb",
+      leftBubbleFg: "#000",
+      senderLabelFg: "#8e8e93",
+      timeStampFg: "#8e8e93",
+      footerBg: "#f6f6f6",
+      footerBorder: "#c8c8c8",
+      inputBg: "#fff",
+      inputBorder: "#c8c8c8",
+      inputFg: "#999",
+    };
+  }
+
   private get css(): string {
+    const p = this.palette;
     return `
 .device {
   width: 100%; height: 100%;
   display: flex; flex-direction: column;
-  background: #fff;
+  background: ${p.deviceBg};
 }
 
 .im-header {
-  background: #f6f6f6; border-bottom: 0.5px solid #c8c8c8;
+  background: ${p.headerBg}; border-bottom: 0.5px solid ${p.headerBorder};
   padding: 19px 22px 14px; text-align: center; flex-shrink: 0;
 }
-.im-header .title { font-size: 20px; font-weight: 600; color: #000; }
-.im-header .subtitle { font-size: 15px; color: #8e8e93; }
+.im-header .title { font-size: 20px; font-weight: 600; color: ${p.titleFg}; }
+.im-header .subtitle { font-size: 15px; color: ${p.subtitleFg}; }
 
 .im-body {
   flex: 1; overflow-y: auto; padding: 14px 16px;
   display: flex; flex-direction: column; gap: 8px;
-  scroll-behavior: smooth; background: #fff;
+  scroll-behavior: smooth; background: ${p.bodyBg};
 }
 
 .section-divider { text-align: center; margin: 11px 0; }
 .section-divider span {
-  font-size: 14px; color: #8e8e93; font-weight: 500;
+  font-size: 14px; color: ${p.sectionDividerFg}; font-weight: 500;
 }
 
 .msg-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
@@ -63,7 +106,7 @@ export class IMessageTheme extends BaseTheme {
 .msg-col.right { align-items: flex-end; }
 
 .sender-label {
-  font-size: 14px; color: #8e8e93;
+  font-size: 14px; color: ${p.senderLabelFg};
   margin-bottom: 3px; padding-left: 5px;
 }
 .sender-label.right { padding-left: 0; padding-right: 5px; }
@@ -81,7 +124,7 @@ export class IMessageTheme extends BaseTheme {
   border-radius: 24px 0 24px 24px;
 }
 .bubble.left {
-  background: #e9e9eb; color: #000;
+  background: ${p.leftBubbleBg}; color: ${p.leftBubbleFg};
   border-radius: 0 24px 24px 24px;
 }
 .bubble.pop { animation: popIn 0.18s ease-out; }
@@ -91,23 +134,24 @@ export class IMessageTheme extends BaseTheme {
   to   { opacity: 1; transform: scale(1); }
 }
 
-.time-stamp { font-size: 12px; color: #8e8e93; white-space: nowrap; margin-bottom: 2px; }
+.time-stamp { font-size: 12px; color: ${p.timeStampFg}; white-space: nowrap; margin-bottom: 2px; }
 
 .bubble-img {
   max-width: 100%; max-height: 280px; width: auto; display: block;
   border-radius: 19px; overflow: hidden; object-fit: cover;
+  margin-bottom: 6px;
 }
 .bubble-img.right { border-radius: 24px 0 24px 24px; }
 .bubble-img.left  { border-radius: 0 24px 24px 24px; }
 
 .im-footer {
-  border-top: 0.5px solid #c8c8c8; padding: 11px 16px;
+  border-top: 0.5px solid ${p.footerBorder}; padding: 11px 16px;
   display: flex; align-items: center; gap: 11px; flex-shrink: 0;
-  background: #f6f6f6;
+  background: ${p.footerBg};
 }
 .im-input {
-  flex: 1; border: 0.5px solid #c8c8c8; border-radius: 24px;
-  padding: 10px 18px; font-size: 18px; color: #999; background: #fff;
+  flex: 1; border: 0.5px solid ${p.inputBorder}; border-radius: 24px;
+  padding: 10px 18px; font-size: 18px; color: ${p.inputFg}; background: ${p.inputBg};
 }
 .im-send {
   width: 40px; height: 40px; background: #007aff; border-radius: 50%;
@@ -141,8 +185,12 @@ export class IMessageTheme extends BaseTheme {
   private get hostMapJSON(): string {
     const colors = ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
     const textColors = ["#fff", "#555", "#fff", "#fff", "#fff"];
-    const bubbleBgs = ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
-    const bubbleFgs = ["#fff", "#000", "#fff", "#fff", "#fff"];
+    const bubbleBgs = this.isDark
+      ? ["#007aff", "#26262a", "#34c759", "#ff9500", "#af52de"]
+      : ["#007aff", "#e9e9eb", "#34c759", "#ff9500", "#af52de"];
+    const bubbleFgs = this.isDark
+      ? ["#fff", "#fff", "#fff", "#fff", "#fff"]
+      : ["#fff", "#000", "#fff", "#fff", "#fff"];
     const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
