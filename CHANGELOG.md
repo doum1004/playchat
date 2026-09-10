@@ -2,6 +2,21 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.2.1 — 2026-09-10
+
+### Changes
+
+- update actions (e4b8b70)
+- fix node 26 support (160e20e)
+- fix: update createdAt timestamp and remove unused audio files (881b3e9)
+- Add dark mode support and color themes for messaging interfaces (958bd0b)
+- feat: update output files and manifest for example3, add horizontal chat scaling (e7bfeb7)
+
+**Full diff:** [v1.2.0...v1.2.1](https://github.com/doum1004/playchat/compare/v1.2.0...v1.2.1)
+
+---
+
+
 ## v1.2.0 — 2026-08-03
 
 ### Changes
