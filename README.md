@@ -25,7 +25,7 @@ npx playchat episode.json --record
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 22.12+
 - ffmpeg + ffprobe in PATH
 
 ## Quick Start
