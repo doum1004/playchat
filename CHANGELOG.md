@@ -2,6 +2,17 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.3.0 — 2026-10-06
+
+### Changes
+
+- Add dialogue annotations with translation examples (36d4eb0)
+
+**Full diff:** [v1.2.1...v1.3.0](https://github.com/doum1004/playchat/compare/v1.2.1...v1.3.0)
+
+---
+
+
 ## v1.2.1 — 2026-09-10
 
 ### Changes
