@@ -1,0 +1,60 @@
+{
+  "name": "대화 번역 예제",
+  "episode_title": "Dialogue translations",
+  "episode_number": 5,
+  "topic": "Translations inside chat bubbles",
+  "subtitle": "Dialogue text with an English translation below it",
+  "summary": "한국어 대화 아래에 영어 번역을 표시하는 예제입니다.",
+  "hosts": [
+    {
+      "id": "host_1",
+      "name": "민수",
+      "gender": "male",
+      "role": "host",
+      "lang": "ko",
+      "voice_config": { "voice_index": 1, "pitch": 0, "speed": 1 }
+    },
+    {
+      "id": "host_2",
+      "name": "지연",
+      "gender": "female",
+      "role": "host",
+      "lang": "ko",
+      "voice_config": { "voice_index": 2, "pitch": 0, "speed": 1 }
+    }
+  ],
+  "sections": [
+    {
+      "section_id": 1,
+      "section_title": "회의 일정",
+      "section_type": "conversation",
+      "corner_name": "회의 일정",
+      "dialogues": [
+        {
+          "id": 1,
+          "speaker": "host_1",
+          "name": "민수",
+          "text": "오늘 회의는 몇 시에 시작해?",
+          "annotation": "What time does today's meeting start?",
+          "audio": ""
+        },
+        {
+          "id": 2,
+          "speaker": "host_2",
+          "name": "지연",
+          "text": "오후 세 시에 시작해.",
+          "annotation": "It starts at three in the afternoon.",
+          "audio": ""
+        },
+        {
+          "id": 3,
+          "speaker": "host_1",
+          "name": "민수",
+          "text": "고마워!",
+          "annotation": "Thanks!",
+          "audio": ""
+        }
+      ]
+    }
+  ]
+}

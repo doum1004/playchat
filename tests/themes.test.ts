@@ -246,7 +246,7 @@ describe("host avatar images", () => {
 });
 
 describe("safe inline script embedding", () => {
-  it("escapes dangerous HTML/script sequences in dialogue text", () => {
+  it("escapes dangerous HTML/script sequences in dialogue text and annotation", () => {
     const scriptyEpisode: PodcastEpisode = {
       ...fixture,
       sections: [
@@ -256,6 +256,7 @@ describe("safe inline script embedding", () => {
             {
               ...fixture.sections[0].dialogues[0],
               text: `before </script><script>alert("x")</script> after`,
+              annotation: `note </script><script>alert("note")</script>`,
             },
           ],
         },
@@ -267,6 +268,7 @@ describe("safe inline script embedding", () => {
       const theme = getTheme(themeId, scriptyEpisode, scriptyDialogues);
       const html = theme.render();
       expect(html).toContain("\\u003c/script\\u003e\\u003cscript\\u003e");
+      expect(html).toContain('annotation":"note \\u003c/script\\u003e');
       expect(html).toContain("function playNext()");
     }
   });

@@ -1,174 +1,229 @@
-import { PodcastEpisode, FlatDialogue, EngineOptions, Orientation, ColorTheme, DEFAULT_ENGINE_OPTIONS, normalizeAudioPath } from "../core/types";
-
-export interface ThemeConfig {
-  width: number;
-  height: number;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dialogue translations</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 540px;
+  height: 960px;
+  overflow: hidden;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+#pc-stage { width: 100%; height: 100%; display: flex; flex-direction: column; }
+#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }
+#pc-bottom-band {
+  flex: 0 0 12%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px; overflow: hidden;
+  background: #000; color: #fff;
+  font-size: 26px; font-weight: 700; text-align: center; line-height: 1.2;
+}
+.bubble-text, .bubble-annotation { white-space: pre-line; }
+.bubble-annotation {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
 }
 
-/**
- * Shared 9:16 logical viewport for every theme.
- * Recording captures at deviceScaleFactor 2, so output = 1080×1920 (Full HD).
- */
-export const THEME_VIEWPORT: ThemeConfig = { width: 540, height: 960 };
+.device {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  background: #fff;
+}
 
-/**
- * Horizontal 16:9 logical viewport (→ 1920×1080 after 2× scale).
- * Chat occupies a portrait strip on the left; the right pane shows image/video.
- */
-export const THEME_VIEWPORT_HORIZONTAL: ThemeConfig = { width: 960, height: 540 };
+.im-header {
+  background: #f6f6f6; border-bottom: 0.5px solid #c8c8c8;
+  padding: 19px 22px 14px; text-align: center; flex-shrink: 0;
+}
+.im-header .title { font-size: 20px; font-weight: 600; color: #000; }
+.im-header .subtitle { font-size: 15px; color: #8e8e93; }
 
-/**
- * Abstract base for all chat themes.
- *
- * Theme contract — every subclass must provide:
- *   1. An element with id="chat-body" in the HTML body
- *   2. A global `appendMsg(d)` function in the JS block
- *   3. A global `lastSection` variable in the JS block
- *
- * The shared `engineScript` handles playback, autoplay, and done signalling.
- */
-export abstract class BaseTheme {
-  protected episode: PodcastEpisode;
-  protected dialogues: FlatDialogue[];
-  protected options: EngineOptions;
+.im-body {
+  flex: 1; overflow-y: auto; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  scroll-behavior: smooth; background: #fff;
+}
 
-  constructor(episode: PodcastEpisode, dialogues: FlatDialogue[], options?: Partial<EngineOptions>) {
-    this.episode = episode;
-    this.dialogues = dialogues;
-    this.options = { ...DEFAULT_ENGINE_OPTIONS, ...options };
+.section-divider { text-align: center; margin: 11px 0; }
+.section-divider span {
+  font-size: 14px; color: #8e8e93; font-weight: 500;
+}
+
+.msg-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 3px; }
+.msg-row.right { flex-direction: row-reverse; }
+
+.avatar-col { width: 40px; flex-shrink: 0; }
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  font-size: 16px; font-weight: 600;
+}
+.avatar-letter { position: relative; z-index: 1; }
+.avatar-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
+}
+
+.msg-col { display: flex; flex-direction: column; max-width: 70%; }
+.msg-col.right { align-items: flex-end; }
+
+.sender-label {
+  font-size: 14px; color: #8e8e93;
+  margin-bottom: 3px; padding-left: 5px;
+}
+.sender-label.right { padding-left: 0; padding-right: 5px; }
+
+.bubble-wrap { display: flex; align-items: flex-end; gap: 6px; }
+.bubble-wrap.right { flex-direction: row-reverse; }
+
+.bubble {
+  padding: 11px 16px;
+  font-size: 19px; line-height: 1.45;
+  word-break: break-word;
+}
+.bubble.right {
+  background: #007aff; color: #fff;
+  border-radius: 24px 0 24px 24px;
+}
+.bubble.left {
+  background: #e9e9eb; color: #000;
+  border-radius: 0 24px 24px 24px;
+}
+.bubble.pop { animation: popIn 0.18s ease-out; }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.time-stamp { font-size: 12px; color: #8e8e93; white-space: nowrap; margin-bottom: 2px; }
+
+.bubble-img {
+  max-width: 100%; max-height: 280px; width: auto; display: block;
+  border-radius: 19px; overflow: hidden; object-fit: cover;
+  margin-bottom: 6px;
+}
+.bubble-img.right { border-radius: 24px 0 24px 24px; }
+.bubble-img.left  { border-radius: 0 24px 24px 24px; }
+
+.im-footer {
+  border-top: 0.5px solid #c8c8c8; padding: 11px 16px;
+  display: flex; align-items: center; gap: 11px; flex-shrink: 0;
+  background: #f6f6f6;
+}
+.im-input {
+  flex: 1; border: 0.5px solid #c8c8c8; border-radius: 24px;
+  padding: 10px 18px; font-size: 18px; color: #999; background: #fff;
+}
+.im-send {
+  width: 40px; height: 40px; background: #007aff; border-radius: 50%;
+  border: none; display: flex; align-items: center; justify-content: center;
+}
+.im-send svg { fill: #fff; }
+</style>
+</head>
+<body>
+<div id="pc-stage">
+<div id="pc-content">
+
+<div class="device">
+  <div class="im-header">
+    <div class="title">Dialogue translations</div>
+    <div class="subtitle">2 people</div>
+  </div>
+  <div class="im-body" id="chat-body">
+    <div class="section-divider"><span>회의 일정</span></div>
+  </div>
+  <div class="im-footer">
+    <div class="im-input">iMessage</div>
+    <div class="im-send">
+      <svg width="19" height="19" viewBox="0 0 14 14">
+        <path d="M7 1L13 13H1L7 1Z"/>
+      </svg>
+    </div>
+  </div>
+</div>
+</div>
+<div id="pc-bottom-band"><span>대화 번역 예제</span></div>
+</div>
+<script>
+
+const body = document.getElementById('chat-body');
+const ME = "host_1";
+const SHOW_AVATAR = true;
+const HOST_MAP = {"host_1":{"letter":"민","bg":"#007aff","fg":"#fff","image":"","bubbleBg":"#007aff","bubbleFg":"#fff"},"host_2":{"letter":"지","bg":"#e9e9eb","fg":"#555","image":"","bubbleBg":"#e9e9eb","bubbleFg":"#000"}};
+
+var _playTimeSec = 0;
+function getTime(audioDurationSec) {
+  var total = Math.floor(_playTimeSec);
+  var m = Math.floor(total / 60), s = total % 60;
+  var stamp = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  if (audioDurationSec && audioDurationSec > 0) {
+    _playTimeSec += audioDurationSec;
+  }
+  return stamp;
+}
+
+function avatarHTML(d) {
+  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
+  var letter = '<span class="avatar-letter">' + info.letter + '</span>';
+  var img = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
+  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + letter + img + '</div></div>';
+}
+
+function appendMsg(d) {
+  var side = d.speaker === ME ? 'right' : 'left';
+  var t = getTime(d.audioDurationSec);
+
+  if (d.section !== lastSection) {
+    var div = document.createElement('div');
+    div.className = 'section-divider';
+    div.innerHTML = '<span>' + d.section + '</span>';
+    body.appendChild(div);
+    lastSection = d.section;
   }
 
-  abstract get id(): string;
-  abstract get label(): string;
-  abstract render(): string;
+  var row = document.createElement('div');
+  row.className = 'msg-row' + (side === 'right' ? ' right' : '');
+  var html = '';
+  if (SHOW_AVATAR) html += avatarHTML(d);
+  html += '<div class="msg-col' + (side === 'right' ? ' right' : '') + '">';
+  if (SHOW_AVATAR) html += '<div class="sender-label' + (side === 'right' ? ' right' : '') + '">' + d.name + '</div>';
+  var __bimgs = bubbleImages(d);
+  for (var __i = 0; __i < __bimgs.length; __i++) html += '<img class="bubble-img ' + side + '" src="' + __bimgs[__i] + '" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.remove()" />';
+  var bInfo = HOST_MAP[d.speaker] || { bubbleBg: '', bubbleFg: '' };
+  var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
+  html +=
+      '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + bubbleContent(d) + '</div>' +
+        '<span class="time-stamp">' + t + '</span>' +
+      '</div>' +
+    '</div>';
+  row.innerHTML = html;
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
+}
 
-  /** Frame orientation from engine options (CLI-driven). Defaults to "vertical". */
-  get orientation(): Orientation {
-    return this.options.orientation === "horizontal" ? "horizontal" : "vertical";
-  }
 
-  protected get isHorizontal(): boolean {
-    return this.orientation === "horizontal";
-  }
-
-  /** Color scheme from engine options (CLI-driven). Defaults to "light". */
-  get colorTheme(): ColorTheme {
-    return this.options.colorTheme === "dark" ? "dark" : "light";
-  }
-
-  protected get isDark(): boolean {
-    return this.colorTheme === "dark";
-  }
-
-  /** Viewport depends on orientation: 9:16 vertical (default) or 16:9 horizontal. */
-  get viewport(): ThemeConfig {
-    return this.isHorizontal ? THEME_VIEWPORT_HORIZONTAL : THEME_VIEWPORT;
-  }
-
-  /**
-   * Width of the chat pane in horizontal layout. A portrait strip on the left,
-   * kept just under half the frame width so the media pane stays dominant.
-   */
-  protected get chatPaneWidth(): number {
-    return Math.round(this.viewport.width * 0.45);
-  }
-
-  /**
-   * Content scale applied to the chat pane in horizontal layout. Themes use px
-   * font sizes tuned for the taller vertical viewport, so in the shorter
-   * horizontal strip they render large and only a few messages fit. Scaling the
-   * whole chat root down makes text smaller and shows more messages at once.
-   */
-  protected get horizontalChatScale(): number {
-    return 0.8;
-  }
-
-  /** Browser-usable URI of the episode-level default image (right pane). */
-  protected get episodeImageURI(): string {
-    const img = this.episode.image ?? "";
-    return img ? normalizeAudioPath(img) : "";
-  }
-
-  // ── Shared helpers ──
-
-  protected get firstSection(): string {
-    return this.episode.sections[0]?.corner_name ?? "";
-  }
-
-  protected get hostCount(): number {
-    return this.episode.hosts.length;
-  }
-
-  protected get totalDialogues(): number {
-    return this.dialogues.length;
-  }
-
-  protected get dialoguesJSON(): string {
-    // Escape characters that can break inline <script> parsing in generated HTML.
-    // This keeps playback reliable even when dialogue text includes tags like </script>.
-    return JSON.stringify(this.dialogues)
-      .replace(/</g, "\\u003c")
-      .replace(/>/g, "\\u003e")
-      .replace(/&/g, "\\u0026")
-      .replace(/\u2028/g, "\\u2028")
-      .replace(/\u2029/g, "\\u2029");
-  }
-
-  /** The host id of the first host in the episode — treated as "me" (right side). */
-  protected get meHostId(): string {
-    return this.episode.hosts[0]?.id ?? "host_1";
-  }
-
-  protected get showAvatar(): boolean {
-    return this.options.showAvatar;
-  }
-
-  // ── Bottom branding band ──
-  // A reserved strip at the bottom of the 9:16 frame showing the show name.
-  // It keeps the chat content clear of platform overlay UI (YouTube Shorts /
-  // TikTok caption + action buttons) and doubles as branding.
-
-  /** Band background color — overridden per theme to match its accent. */
-  protected get bottomBandBg(): string { return "#000"; }
-
-  /** Band text color — overridden per theme for contrast against the accent. */
-  protected get bottomBandFg(): string { return "#fff"; }
-
-  /** Show name displayed in the band. Empty string when the episode has no name. */
-  protected get bottomLabel(): string { return this.episode.name ?? ""; }
-
-  /** Escape a plain string for safe inline HTML injection. */
-  protected escapeHTML(s: string): string {
-    return s
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-  }
-
-  /** URL of the episode-level audio file, or empty string if per-dialogue mode. */
-  protected get episodeAudioURL(): string {
-    return this.episode.audio ?? "";
-  }
-
-  /** True when dialogues use time_start / time_end with a single episode audio. */
-  protected get isEpisodeAudioMode(): boolean {
-    return !!this.episodeAudioURL &&
-      this.dialogues.length > 0 &&
-      this.dialogues.every((d) => d.timeStartSec > 0 || d.timeEndSec > 0);
-  }
-
-  /** Shared playback engine — call at the end of every theme's JS block. */
-  protected get engineScript(): string {
-    return `
-const dialogues = ${this.dialoguesJSON};
+const dialogues = [{"speaker":"host_1","name":"민수","text":"오늘 회의는 몇 시에 시작해?","annotation":"What time does today's meeting start?","audio":"","audioRaw":"","section":"회의 일정","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0},{"speaker":"host_2","name":"지연","text":"오후 세 시에 시작해.","annotation":"It starts at three in the afternoon.","audio":"","audioRaw":"","section":"회의 일정","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0},{"speaker":"host_1","name":"민수","text":"고마워!","annotation":"Thanks!","audio":"","audioRaw":"","section":"회의 일정","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0}];
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
-let lastSection = ${JSON.stringify(this.firstSection)};
+let lastSection = "회의 일정";
 const POST_AUDIO_GAP_MS = 400;
-const EPISODE_AUDIO_URL = ${JSON.stringify(this.episodeAudioURL)};
-const IS_EPISODE_AUDIO = ${this.isEpisodeAudioMode};
-const HORIZONTAL = ${this.isHorizontal};
-const EPISODE_IMAGE = ${JSON.stringify(this.episodeImageURI)};
+const EPISODE_AUDIO_URL = "";
+const IS_EPISODE_AUDIO = false;
+const HORIZONTAL = false;
+const EPISODE_IMAGE = "";
 
 function escapeBubbleText(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -191,14 +246,14 @@ function bubbleContent(d) {
 //     back to the episode image.
 // Effective priority at any instant: active dialogue image > section image > episode image.
 function __isVideoSrc__(s) {
-  return /\\.(mp4|webm|mov|m4v|ogv)(\\?|#|$)/i.test(s);
+  return /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(s);
 }
 function __mediaSrc__(d, ended) {
   if (!d) return EPISODE_IMAGE || '';
   var own = ended ? '' : (d.image || '');
   return own || d.sectionImage || EPISODE_IMAGE || '';
 }
-// Show media for dialogue \`d\`. When \`ended\` is true the dialogue's own image is
+// Show media for dialogue `d`. When `ended` is true the dialogue's own image is
 // dropped so the section/episode image shows during the gap after it finishes.
 function setMedia(d, ended) {
   if (!HORIZONTAL) return;
@@ -362,7 +417,7 @@ function playNext() {
     currentAudio.onerror = function() { setMedia(d, true); setTimeout(playNext, 2000); };
     currentAudio.play().catch(function() { setMedia(d, true); setTimeout(playNext, 2000); });
   } else {
-    setTimeout(playNext, ${this.options.pauseMs});
+    setTimeout(playNext, 1000);
   }
 }
 
@@ -430,123 +485,7 @@ window.addEventListener('load', function() {
     }
   }, 800);
 });
-`;
-  }
 
-  /** Wrap theme-specific style, body, and script into a full HTML document. */
-  protected wrapHTML(style: string, body: string, script: string): string {
-    const { width, height } = this.viewport;
-    const showBand = this.options.showBottomBand && this.bottomLabel.trim().length > 0;
-    const ratioPct = Math.max(0, Math.min(1, this.options.bottomHeightRatio)) * 100;
-    const bandStyle = showBand
-      ? `
-#pc-bottom-band {
-  flex: 0 0 ${ratioPct}%;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 18px; overflow: hidden;
-  background: ${this.bottomBandBg}; color: ${this.bottomBandFg};
-  font-size: 26px; font-weight: 700; text-align: center; line-height: 1.2;
-}`
-      : "";
-    const band = showBand
-      ? `<div id="pc-bottom-band"><span>${this.escapeHTML(this.bottomLabel)}</span></div>`
-      : "";
-
-    // Horizontal layout: chat stays in a portrait strip on the left; the right
-    // pane shows the active image/video (dialogue > section > episode).
-    const hScale = this.horizontalChatScale;
-    const hInvPct = (100 / hScale).toFixed(4); // up-size before scaling down
-    const horizontalStyle = this.isHorizontal
-      ? `
-#pc-stage { flex-direction: row; }
-#pc-chat-pane {
-  flex: 0 0 ${this.chatPaneWidth}px;
-  width: ${this.chatPaneWidth}px;
-  height: 100%;
-  display: flex; flex-direction: column;
-}
-#pc-chat-pane #pc-content { overflow: hidden; }
-/* Scale the chat root down so text is smaller and more messages are visible.
-   The root is up-sized to 1/scale so that after scaling it fills the pane. */
-#pc-chat-pane #pc-content > * {
-  transform: scale(${hScale});
-  transform-origin: top left;
-  width: ${hInvPct}%;
-  height: ${hInvPct}%;
-}
-#pc-media-pane {
-  flex: 1 1 auto; min-width: 0; height: 100%;
-  position: relative; overflow: hidden; background: #000;
-  display: flex; align-items: center; justify-content: center;
-}
-#pc-media-img, #pc-media-video {
-  width: 100%; height: 100%; object-fit: cover; display: block;
-}
-#pc-media-label {
-  position: absolute; top: 18px; right: 18px; z-index: 2;
-  max-width: 70%; padding: 8px 16px; border-radius: 999px;
-  background: ${this.bottomBandBg}; color: ${this.bottomBandFg};
-  font-size: 22px; font-weight: 700; line-height: 1.2; text-align: right;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}`
-      : "";
-
-    // In horizontal mode the show name moves from the bottom band to a
-    // top-right label overlaid on the media pane.
-    const mediaLabel = showBand
-      ? `<div id="pc-media-label">${this.escapeHTML(this.bottomLabel)}</div>`
-      : "";
-
-    const stageInner = this.isHorizontal
-      ? `<div id="pc-chat-pane">
-<div id="pc-content">
-${body}
-</div>
-</div>
-<div id="pc-media-pane">
-${mediaLabel}
-<img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
-<video id="pc-media-video" style="display:none" muted playsinline loop></video>
-</div>`
-      : `<div id="pc-content">
-${body}
-</div>
-${band}`;
-
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${this.episode.episode_title}</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body {
-  width: ${width}px;
-  height: ${height}px;
-  overflow: hidden;
-  background: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-#pc-stage { width: 100%; height: 100%; display: flex; flex-direction: column; }
-#pc-content { flex: 1 1 auto; min-height: 0; position: relative; }${bandStyle}${horizontalStyle}
-.bubble-text, .bubble-annotation { white-space: pre-line; }
-.bubble-annotation {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(128, 128, 128, 0.35);
-}
-${style}
-</style>
-</head>
-<body>
-<div id="pc-stage">
-${stageInner}
-</div>
-<script>
-${script}
 </script>
 </body>
-</html>`;
-  }
-}
+</html>

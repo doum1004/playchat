@@ -35,6 +35,22 @@ describe("flattenDialogues", () => {
     expect(flat[3].text).toContain("옮기는데");
   });
 
+  it("preserves optional dialogue annotations", () => {
+    const annotated: PodcastEpisode = {
+      ...fixture,
+      sections: [{
+        ...fixture.sections[0],
+        dialogues: [
+          { ...fixture.sections[0].dialogues[0], annotation: "Extra context" },
+          fixture.sections[0].dialogues[1],
+        ],
+      }],
+    };
+    const result = flattenDialogues(annotated);
+    expect(result[0].annotation).toBe("Extra context");
+    expect(result[1].annotation).toBeUndefined();
+  });
+
   it("normalizes local audio paths to file:/// URIs", () => {
     for (const d of flat) {
       if (d.audioRaw && !d.audioRaw.startsWith("http")) {

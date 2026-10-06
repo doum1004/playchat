@@ -25,6 +25,8 @@ export interface Dialogue {
   speaker: string;
   name: string;
   text: string;
+  /** Optional translation or note displayed below the dialogue text in the same bubble. */
+  annotation?: string;
   audio: string;
   image?: string;
   /** Absolute time (seconds) in the episode audio where this dialogue starts */
@@ -108,6 +110,7 @@ export interface FlatDialogue {
   speaker: string;
   name: string;
   text: string;
+  annotation?: string;
   audio: string;
   /** Original audio value before normalization (local path, URL, or empty) */
   audioRaw: string;
@@ -155,6 +158,7 @@ export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): Fla
         speaker: d.speaker,
         name: d.name,
         text: d.text,
+        annotation: d.annotation,
         audio: normalizeAudioPath(d.audio, baseDir),
         audioRaw: d.audio,
         section: section.corner_name,

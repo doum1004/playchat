@@ -256,7 +256,8 @@ It is shown by default, omitted automatically when the episode JSON has no
           "id": 1,
           "speaker": "host_1",
           "name": "Minsu",
-          "text": "Hello!",
+          "text": "안녕하세요!",
+          "annotation": "Hello!",
           "audio": "path/to/segment_0000.mp3",
           "image": "https://cdn.example.com/dialogue1.jpg"
         }
@@ -273,6 +274,25 @@ It is shown by default, omitted automatically when the episode JSON has no
   ]
 }
 ```
+
+`dialogues[].annotation` is optional. Use it for a translation or a note. When
+present, it appears in the same message bubble below `text`, separated by a
+thin line. A dialogue without an annotation renders as before. See
+[`fixtures/example5/episode.json`](./fixtures/example5/episode.json) for a
+translation example. From the repository root, build and regenerate its HTML previews:
+
+```bash
+npm run build
+node dist/cli.js fixtures/example5/episode.json --theme kakaotalk --color light --pause 1000 --output fixtures/example5/output
+node dist/cli.js fixtures/example5/episode.json --theme imessage --color light --pause 1000 --output fixtures/example5/imessage
+node dist/cli.js fixtures/example5/episode.json --theme wechat --color light --pause 1000 --output fixtures/example5/wechat
+```
+
+| Theme | HTML preview | Screenshot |
+|---|---|---|
+| KakaoTalk | [Open](./fixtures/example5/output/output.html) | [View](./fixtures/example5/output/translation_preview.png) |
+| iMessage | [Open](./fixtures/example5/imessage/output.html) | [View](./fixtures/example5/imessage/translation_preview.png) |
+| WeChat | [Open](./fixtures/example5/wechat/output.html) | [View](./fixtures/example5/wechat/translation_preview.png) |
 
 `hosts[i].image` is optional. When present, the value is used as the avatar
 image in chat themes; when omitted or if loading fails, the theme falls back to

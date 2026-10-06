@@ -254,7 +254,7 @@ function appendMsg(d) {
   var bStyle = bInfo.bubbleBg ? 'background:' + bInfo.bubbleBg + ';color:' + bInfo.bubbleFg : '';
   html +=
       '<div class="bubble-wrap' + (side === 'right' ? ' right' : '') + '">' +
-        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + d.text + '</div>' +
+        '<div class="bubble ' + side + ' pop" style="' + bStyle + '">' + bubbleContent(d) + '</div>' +
         '<span class="time-stamp">' + t + '</span>' +
       '</div>' +
     '</div>';
