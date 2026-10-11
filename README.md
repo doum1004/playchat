@@ -45,6 +45,9 @@ npx playchat episode.json --output ./my-output --record --theme kakaotalk --paus
 
 # Record a horizontal (16:9) video at 4K with a media pane on the right
 npx playchat episode.json --record --orientation horizontal --resolution 4k
+
+# Record 16:9 media with the current chat bubble near the bottom
+npx playchat episode.json --record --orientation fullscreen
 ```
 
 ## CLI Options
@@ -61,7 +64,7 @@ npx playchat <input.json> [--output <dir>] [--record] [--record-full] [--segment
 | `--segments` | _(off)_ | Also produce individual MP4 videos per section (requires `--record` or `--record-full`) |
 | `--theme <id>` | `kakaotalk` | Chat theme to render |
 | `--pause <ms>` | `3000` | Silence between messages that have no audio file |
-| `--orientation <o>` | `vertical` | Frame orientation: `vertical` (9:16) or `horizontal` (16:9) |
+| `--orientation <o>` | `vertical` | Layout: `vertical` (9:16), `horizontal` (16:9), or `fullscreen` (16:9) |
 | `--resolution <r>` | `1k` | Output resolution: `1k`, `2k`, or `4k` |
 | `--color <c>` | `dark` | Color scheme applied across every theme: `light` or `dark` |
 | `--no-avatar` | _(off)_ | Hide avatar circles and sender names |
@@ -131,6 +134,7 @@ Every run writes a `manifest.json` to the output folder:
 {
   "input": "/absolute/path/to/episode.json",
   "theme": "kakaotalk",
+  "orientation": "vertical",
   "pauseMs": 3000,
   "showAvatar": true,
   "showBottomBand": true,
@@ -179,10 +183,15 @@ Use `--orientation` to choose the frame shape:
 - **`horizontal`** — a landscape **16:9** frame. The chat stays in a portrait
   strip on the **left** (about 45% of the width, the same narrow ratio as
   vertical), and the **right** pane displays a large image/video.
+- **`fullscreen`** — a landscape **16:9** frame with the image/video filling
+  the frame. The current dialogue appears near the bottom in the selected
+  theme's chat bubble style, including its annotation, avatar, and sender name
+  when enabled. Previous bubbles disappear, and the bubble clears when its
+  audio ends. A dialogue without audio stays visible for `--pause` milliseconds.
 
-### Right pane (horizontal only)
+### Media (horizontal and fullscreen)
 
-In horizontal mode the right pane shows media that follows the currently active
+In both landscape modes the media shows imagery that follows the currently active
 scope, falling back down the hierarchy:
 
 **dialogue image → section image → episode image**
@@ -191,8 +200,8 @@ Each media item's lifecycle follows its parent: a dialogue image is shown only
 while that dialogue is active and reverts to the section image when the dialogue
 ends; the section image reverts to the episode image when the section changes.
 A `.mp4`/`.webm`/`.mov` source is played as a looping muted video instead of an
-image. In horizontal mode the inline chat-bubble thumbnail is suppressed since
-the image is shown large on the right.
+image. Inline chat-bubble thumbnails are suppressed in both landscape modes
+because the image appears in the media area.
 
 Set the images with `episode.image`, `sections[].image`, and `dialogues[].image`
 (see [Episode JSON Format](#episode-json-format)).
@@ -201,7 +210,7 @@ Set the images with `episode.image`, `sections[].image`, and `dialogues[].image`
 
 `--resolution` scales the exported video while keeping the aspect ratio:
 
-| Value | Long side | Vertical (9:16) | Horizontal (16:9) |
+| Value | Long side | Vertical (9:16) | Horizontal / fullscreen (16:9) |
 |---|---|---|---|
 | `1k` (default) | 1920 | 1080×1920 | 1920×1080 |
 | `2k` | 2560 | 1440×2560 | 2560×1440 |
@@ -218,9 +227,12 @@ platform overlay UI:
   username, and action buttons.
 - **Horizontal** — the `name` moves to a pill label in the **top-right** corner
   overlaid on the right media pane, keeping the left chat strip clean.
+- **Fullscreen** — the frame is reserved for media and the active bubble, so
+  no branding label is drawn.
 
-It is shown by default, omitted automatically when the episode JSON has no
-`name`, and can be disabled explicitly with `--no-bottom`.
+Branding is shown by default in vertical and horizontal modes, omitted
+automatically when the episode JSON has no `name`, and can be disabled with
+`--no-bottom`.
 
 ## Episode JSON Format
 
@@ -299,8 +311,8 @@ image in chat themes; when omitted or if loading fails, the theme falls back to
 the host's initial letter.
 
 The top-level `image`, `sections[].image`, and `dialogues[].image` fields are
-optional and only used in `--orientation horizontal` mode, where they populate
-the right media pane (dialogue image \u2192 section image \u2192 episode image). Each
+optional and used in `horizontal` and `fullscreen` modes, where they populate
+the media area (dialogue image \u2192 section image \u2192 episode image). Each
 accepts a local path or a remote URL, and may point at an image or a video
 (`.mp4`/`.webm`/`.mov`).
 

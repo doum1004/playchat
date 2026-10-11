@@ -7,7 +7,7 @@ import * as https from "https";
 import * as http from "http";
 import * as crypto from "crypto";
 import * as os from "os";
-import { PodcastEpisode, FlatDialogue, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OPTIONS } from "./core/types";
+import { PodcastEpisode, FlatDialogue, Orientation, flattenDialogues, normalizeAudioPath, DEFAULT_ENGINE_OPTIONS } from "./core/types";
 import { resolveOutputDir } from "./core/output";
 import { collectRemoteImageUrls, applyCachedImageUris } from "./core/image-cache";
 import { applySystemHostAvatars } from "./core/system-avatar";
@@ -51,13 +51,13 @@ function stripFlags(args: string[], ...flags: string[]): string[] {
 
 // ── Audio helpers ─────────────────────────────────────────────────────────────
 
-function toLocalPath(audio: string): string | null {
+function toLocalPath(audio: string, baseDir = process.cwd()): string | null {
   if (!audio) return null;
   if (/^https?:\/\//i.test(audio)) return null;
   if (audio.startsWith("file:///")) {
     return path.resolve(audio.slice("file:///".length));
   }
-  return path.resolve(audio);
+  return path.resolve(baseDir, audio);
 }
 
 // ── Audio download cache ──────────────────────────────────────────────────────
@@ -270,7 +270,8 @@ function isEpisodeAudioMode(dialogues: FlatDialogue[]): boolean {
 async function buildTimeline(
   dialogues: FlatDialogue[],
   pauseMs: number,
-  remoteAudioMap: Map<string, string> = new Map()
+  remoteAudioMap: Map<string, string> = new Map(),
+  inputDir = process.cwd()
 ): Promise<DialogueTiming[]> {
   const POST_AUDIO_GAP_MS = 400;
 
@@ -292,7 +293,7 @@ async function buildTimeline(
     const raw = d.audioRaw || d.audio;
     if (!raw) return null;
     if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
-    const local = toLocalPath(raw);
+    const local = toLocalPath(raw, inputDir);
     return local && fs.existsSync(local) ? local : null;
   });
 
@@ -364,7 +365,7 @@ async function recordStatic(
   screenshots?: BubbleScreenshotPaths,
   totalDurationMs?: number,
   dialogues: FlatDialogue[] = [],
-  mediaAware = false
+  orientation: Orientation = "vertical"
 ): Promise<void> {
   const POST_AUDIO_GAP_MS = 400;
   const TAIL_MS = 2000;
@@ -375,10 +376,8 @@ async function recordStatic(
   const timelineMs = timings.map((t) => t.showAtMs);
 
   // ── Capture plan ──────────────────────────────────────────────────────────
-  // Normally one held frame per dialogue. In horizontal (media-aware) mode a
-  // dialogue that owns an image is split into two frames so the right pane
-  // reverts to the section/episode image the moment that dialogue's audio ends
-  // (instead of holding the dialogue image through the trailing gap).
+  // Split active and gap frames when the media or subtitle changes at the
+  // end of a dialogue. The last fullscreen bubble also needs a blank tail.
   interface Capture { scrubMs: number; holdMs: number }
   const captures: Capture[] = [];
   for (let i = 0; i < timings.length; i++) {
@@ -387,15 +386,15 @@ async function recordStatic(
       ? timings[i + 1].showAtMs
       : showAt + (timings[i].audioDurationMs > 0 ? timings[i].audioDurationMs + POST_AUDIO_GAP_MS : pauseMs);
     const endAt = timings[i].audioDurationMs > 0 ? showAt + timings[i].audioDurationMs : nextShow;
-    const ownsImage = mediaAware && !!dialogues[i]?.image;
+    const ownsImage = orientation === "horizontal" && !!dialogues[i]?.image;
     const isLast = i === timings.length - 1;
-    if (ownsImage && endAt < nextShow - GAP_EPS_MS) {
-      // Dialogue image while active, then revert during the trailing gap.
+    const needsEndFrame = ownsImage || (orientation === "fullscreen" && (timings[i].audioDurationMs > 0 || isLast));
+    if (needsEndFrame && endAt < nextShow - GAP_EPS_MS) {
+      // Show the dialogue while active, then its media fallback without text.
       captures.push({ scrubMs: showAt, holdMs: endAt - showAt });
       captures.push({ scrubMs: Math.min(nextShow - 1, endAt + GAP_EPS_MS), holdMs: nextShow - endAt });
-    } else if (ownsImage && isLast) {
-      // Last dialogue owns an image: revert for the tail so it ends on the
-      // section/episode image rather than lingering on the dialogue image.
+    } else if (needsEndFrame && isLast) {
+      // End on the section/episode image without the last fullscreen bubble.
       captures.push({ scrubMs: showAt, holdMs: Math.max(0, endAt - showAt) });
       captures.push({ scrubMs: endAt + GAP_EPS_MS, holdMs: Math.max(GAP_EPS_MS, nextShow - endAt) });
     } else {
@@ -614,9 +613,12 @@ async function recordAndEncode(
     (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000);
   const totalFrames = Math.min(Math.ceil((totalMs / 1000) * FPS), FPS * MAX_DURATION_SEC);
   const timelineMs = timings.map((t) => t.showAtMs);
+  // Short clips do not have enough frames to keep many browser/encoder pairs busy.
+  const workerCount = Math.min(WORKER_COUNT, Math.max(1, Math.floor(totalFrames / (FPS * 2))));
+  const workerLabel = `${workerCount} ${workerCount === 1 ? "worker" : "workers"}`;
 
   process.stdout.write(
-    `Recording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ...`
+    `Recording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${workerLabel}] ...`
   );
 
   const browser = await puppeteer.launch({
@@ -641,8 +643,8 @@ async function recordAndEncode(
 
 
   // Divide frames evenly across workers
-  const chunkSize = Math.ceil(totalFrames / WORKER_COUNT);
-  const chunks = Array.from({ length: WORKER_COUNT }, (_, i) => ({
+  const chunkSize = Math.ceil(totalFrames / workerCount);
+  const chunks = Array.from({ length: workerCount }, (_, i) => ({
     start: i * chunkSize,
     end: Math.min((i + 1) * chunkSize, totalFrames),
     seg: path.join(tmpDir, `seg_${String(i).padStart(3, "0")}.mp4`),
@@ -653,7 +655,7 @@ async function recordAndEncode(
     completedFrames += n;
     const pct = Math.round((completedFrames / totalFrames) * 100);
     process.stdout.write(
-      `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ... ${pct}%`
+      `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${workerLabel}] ... ${pct}%`
     );
   };
 
@@ -668,7 +670,7 @@ async function recordAndEncode(
   }
 
   process.stdout.write(
-    `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${WORKER_COUNT} workers] ... done\n`
+    `\rRecording ${width}x${height} @${FPS}fps  ${totalFrames} frames (${(totalMs / 1000).toFixed(1)}s)  [${workerLabel}] ... done\n`
   );
 
   // Concatenate segments into the final silent mp4
@@ -779,6 +781,7 @@ interface ManifestFiles {
 interface Manifest {
   input: string;
   theme: string;
+  orientation: Orientation;
   pauseMs: number;
   showAvatar: boolean;
   showBottomBand: boolean;
@@ -822,7 +825,7 @@ Options:
   --theme <id>    Theme to use (${listThemes().join(", ")}) [default: kakaotalk]
   --pause <ms>    No-audio pause between messages in ms [default: ${DEFAULT_ENGINE_OPTIONS.pauseMs}]
   --resolution <r> Output resolution: 1k (1080p), 2k (1440p), 4k (2160p) [default: 1k]
-  --orientation <o> Frame orientation: vertical (9:16) or horizontal (16:9) [default: vertical]
+  --orientation <o> Layout: vertical (9:16), horizontal (16:9), or fullscreen (16:9) [default: vertical]
   --color <c>     Color scheme: light or dark [default: dark]
   --no-avatar     Hide avatar circles and sender names
   --no-bottom     Hide the bottom show-name band (shown by default using the JSON "name" field)
@@ -853,8 +856,8 @@ Examples:
   }
   SCALE = RESOLUTION_SCALES[resolution];
   const orientation = (parseFlag(args, "--orientation") || "vertical").toLowerCase();
-  if (orientation !== "vertical" && orientation !== "horizontal") {
-    console.error(`Invalid --orientation "${orientation}". Valid: vertical, horizontal`);
+  if (orientation !== "vertical" && orientation !== "horizontal" && orientation !== "fullscreen") {
+    console.error(`Invalid --orientation "${orientation}". Valid: vertical, horizontal, fullscreen`);
     process.exit(1);
   }
   const colorTheme = (parseFlag(args, "--color") || "dark").toLowerCase();
@@ -901,7 +904,7 @@ Examples:
     }
   }
 
-  // Normalize the episode-level default image (right pane in horizontal layout)
+  // Normalize the episode-level default image for landscape layouts
   // relative to the input JSON directory.
   if (episode.image) {
     episode.image = normalizeAudioPath(episode.image, inputDir);
@@ -923,7 +926,7 @@ Examples:
       const raw = d.audioRaw || d.audio;
       if (!raw) return null;
       if (/^https?:\/\//i.test(raw)) return remoteAudioMap.get(raw) ?? null;
-      const local = toLocalPath(raw);
+      const local = toLocalPath(raw, inputDir);
       return local && fs.existsSync(local) ? local : null;
     });
     const durations = await Promise.all(
@@ -963,6 +966,7 @@ Examples:
     writeManifest(outDir, {
       input: inputAbsPath,
       theme: themeId,
+      orientation,
       pauseMs,
       showAvatar,
       showBottomBand,
@@ -987,7 +991,7 @@ Examples:
 
   try {
     const remoteAudioMap: Map<string, string> = precomputedRemoteAudioMap ?? new Map();
-    const timings = await buildTimeline(dialogues, pauseMs, remoteAudioMap);
+    const timings = await buildTimeline(dialogues, pauseMs, remoteAudioMap, inputDir);
     const lastTiming = timings[timings.length - 1];
     const dialogueTotalMs = lastTiming.showAtMs +
       (lastTiming.audioDurationMs > 0 ? lastTiming.audioDurationMs : 3000) + 2000;
@@ -1000,9 +1004,9 @@ Examples:
       if (/^https?:\/\//i.test(episodeAudioUrl)) {
         localEpisodeAudio = await cachedDownload(episodeAudioUrl);
       } else {
-        localEpisodeAudio = toLocalPath(episodeAudioUrl) ?? path.resolve(inputDir, episodeAudioUrl);
+        localEpisodeAudio = toLocalPath(episodeAudioUrl, inputDir);
       }
-      if (!fs.existsSync(localEpisodeAudio)) localEpisodeAudio = null;
+      if (localEpisodeAudio && !fs.existsSync(localEpisodeAudio)) localEpisodeAudio = null;
     }
 
     let totalMs = dialogueTotalMs;
@@ -1019,7 +1023,7 @@ Examples:
     if (doRecordFull) {
       await recordAndEncode(htmlPath, width, height, timings, silentMp4, bubbleScreenshots, totalMs);
     } else {
-      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots, totalMs, dialogues, orientation === "horizontal");
+      await recordStatic(htmlPath, width, height, timings, pauseMs, silentMp4, bubbleScreenshots, totalMs, dialogues, orientation);
     }
 
     const videoDurSec = getAudioDurationSec(silentMp4);
@@ -1155,6 +1159,7 @@ Examples:
     writeManifest(outDir, {
       input: inputAbsPath,
       theme: themeId,
+      orientation,
       pauseMs,
       showAvatar,
       showBottomBand,

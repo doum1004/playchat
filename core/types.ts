@@ -40,13 +40,13 @@ export interface Section {
   section_title: string;
   section_type: string;
   corner_name: string;
-  /** Default image shown on the right pane (horizontal layout) for this section's dialogues. */
+  /** Default media shown for this section in horizontal and fullscreen layouts. */
   image?: string;
   dialogues: Dialogue[];
 }
 
-/** Frame orientation for the rendered chat. Defaults to "vertical". */
-export type Orientation = "vertical" | "horizontal";
+/** Frame layout for the rendered chat. Defaults to "vertical". */
+export type Orientation = "vertical" | "horizontal" | "fullscreen";
 
 /** Color scheme for the rendered chat. Defaults to "dark". */
 export type ColorTheme = "light" | "dark";
@@ -67,7 +67,7 @@ export interface PodcastEpisode {
   summary: string;
   hosts: Host[];
   sections: Section[];
-  /** Default image shown on the right pane (horizontal layout) when no dialogue or section image applies. */
+  /** Default media shown in horizontal and fullscreen layouts. */
   image?: string;
   /** Single audio file for the full episode (includes intro/outro music). */
   audio?: string;
@@ -88,6 +88,7 @@ export interface EngineOptions {
    * Frame orientation. "vertical" (default) renders the classic 9:16 chat.
    * "horizontal" renders a 16:9 frame with the chat on the left and an
    * image/video pane on the right.
+   * "fullscreen" renders 16:9 media behind only the active dialogue bubble.
    */
   orientation: Orientation;
   /**

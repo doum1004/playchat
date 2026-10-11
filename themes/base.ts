@@ -44,11 +44,20 @@ export abstract class BaseTheme {
 
   /** Frame orientation from engine options (CLI-driven). Defaults to "vertical". */
   get orientation(): Orientation {
-    return this.options.orientation === "horizontal" ? "horizontal" : "vertical";
+    return this.options.orientation === "horizontal" || this.options.orientation === "fullscreen"
+      ? this.options.orientation : "vertical";
   }
 
   protected get isHorizontal(): boolean {
     return this.orientation === "horizontal";
+  }
+
+  protected get isFullscreen(): boolean {
+    return this.orientation === "fullscreen";
+  }
+
+  protected get hasMediaPane(): boolean {
+    return this.isHorizontal || this.isFullscreen;
   }
 
   /** Color scheme from engine options (CLI-driven). Defaults to "light". */
@@ -60,9 +69,9 @@ export abstract class BaseTheme {
     return this.colorTheme === "dark";
   }
 
-  /** Viewport depends on orientation: 9:16 vertical (default) or 16:9 horizontal. */
+  /** Viewport depends on orientation: 9:16 vertical (default) or 16:9 landscape. */
   get viewport(): ThemeConfig {
-    return this.isHorizontal ? THEME_VIEWPORT_HORIZONTAL : THEME_VIEWPORT;
+    return this.hasMediaPane ? THEME_VIEWPORT_HORIZONTAL : THEME_VIEWPORT;
   }
 
   /**
@@ -83,7 +92,7 @@ export abstract class BaseTheme {
     return 0.8;
   }
 
-  /** Browser-usable URI of the episode-level default image (right pane). */
+  /** Browser-usable URI of the episode-level default media. */
   protected get episodeImageURI(): string {
     const img = this.episode.image ?? "";
     return img ? normalizeAudioPath(img) : "";
@@ -167,7 +176,8 @@ let lastSection = ${JSON.stringify(this.firstSection)};
 const POST_AUDIO_GAP_MS = 400;
 const EPISODE_AUDIO_URL = ${JSON.stringify(this.episodeAudioURL)};
 const IS_EPISODE_AUDIO = ${this.isEpisodeAudioMode};
-const HORIZONTAL = ${this.isHorizontal};
+const MEDIA_PANE = ${this.hasMediaPane};
+const FULLSCREEN = ${this.isFullscreen};
 const EPISODE_IMAGE = ${JSON.stringify(this.episodeImageURI)};
 
 function escapeBubbleText(value) {
@@ -182,8 +192,8 @@ function bubbleContent(d) {
   return content;
 }
 
-// ── Right media pane (horizontal layout) ────────────────────────────────────
-// Displays the active image/video on the right side. Media follows its parent
+// ── Landscape media area ─────────────────────────────────────────────────────
+// Displays the active image/video beside or behind the chat. Media follows its parent
 // scope's lifecycle:
 //   • a dialogue image shows only while that dialogue is active; once it ends
 //     the pane falls back to the section image;
@@ -201,7 +211,7 @@ function __mediaSrc__(d, ended) {
 // Show media for dialogue \`d\`. When \`ended\` is true the dialogue's own image is
 // dropped so the section/episode image shows during the gap after it finishes.
 function setMedia(d, ended) {
-  if (!HORIZONTAL) return;
+  if (!MEDIA_PANE) return;
   var img = document.getElementById('pc-media-img');
   var vid = document.getElementById('pc-media-video');
   if (!img || !vid) return;
@@ -227,23 +237,28 @@ function setMedia(d, ended) {
 
 // Render a dialogue bubble and show its media (dialogue still active).
 function showMsg(d) {
+  if (FULLSCREEN) document.getElementById('chat-body').replaceChildren();
   appendMsg(d);
   setMedia(d, false);
 }
 
+function clearCurrentDialog() {
+  if (FULLSCREEN) document.getElementById('chat-body').replaceChildren();
+}
+
 // ── Inline bubble thumbnails (vertical layout) ──────────────────────────────
 // Vertical themes render images inline in the chat as bubble thumbnails. Unlike
-// the horizontal pane (which swaps a single persistent media by priority), each
+// the landscape media area (which swaps a single persistent media by priority), each
 // scope's image simply appears once, at the point its scope begins:
 //   • the episode image is shown as a banner at the top when the chat starts
 //     (see showEpisodeBanner — it does not wait for the first dialogue);
 //   • a section image is shown on the first bubble of that section;
 //   • a dialogue image is shown on its own bubble.
-// These are independent (no priority/fallback). Returns [] in horizontal mode
-// (media shows in the right pane instead).
+// These are independent (no priority/fallback). Returns [] in landscape modes
+// (media shows separately instead).
 var __lastSectionImgKey__ = null;
 function bubbleImages(d) {
-  if (HORIZONTAL || !d) return [];
+  if (MEDIA_PANE || !d) return [];
   var out = [];
   if (d.section !== __lastSectionImgKey__) {
     __lastSectionImgKey__ = d.section;
@@ -254,10 +269,10 @@ function bubbleImages(d) {
 }
 
 // Episode banner: shown at the top of the chat the moment the episode starts,
-// independent of any dialogue. Vertical layout only (horizontal uses the right
-// media pane). Self-styled so no per-theme CSS is required.
+// independent of any dialogue. Vertical layout only (landscape modes use the
+// media area). Self-styled so no per-theme CSS is required.
 function showEpisodeBanner() {
-  if (HORIZONTAL || !EPISODE_IMAGE) return;
+  if (MEDIA_PANE || !EPISODE_IMAGE) return;
   var body = document.getElementById('chat-body');
   if (!body || document.getElementById('pc-episode-banner')) return;
   var img = document.createElement('img');
@@ -317,7 +332,9 @@ function playEpisodeAudio() {
     // dialogue image is dropped in favour of the section/episode image.
     if (nextIdx > 0) {
       var active = dialogues[nextIdx - 1];
-      setMedia(active, active.timeEndSec > 0 && t > active.timeEndSec);
+      var ended = active.timeEndSec > 0 && t >= active.timeEndSec;
+      setMedia(active, ended);
+      if (ended) clearCurrentDialog();
     }
     if (nextIdx >= TOTAL) {
       document.body.dataset.done = '1';
@@ -329,6 +346,8 @@ function playEpisodeAudio() {
       showMsg(dialogues[nextIdx]);
       nextIdx++;
     }
+    setMedia(dialogues[TOTAL - 1], true);
+    clearCurrentDialog();
     document.body.dataset.done = '1';
   });
   audio.onerror = function() {
@@ -350,19 +369,19 @@ function playNext() {
     return;
   }
   const d = dialogues[idx];
-  appendMsg(d);
-  setMedia(d, false);
+  showMsg(d);
   idx++;
 
   if (d.audio) {
     currentAudio = new Audio(d.audio);
     // When the clip ends, drop the dialogue image so the section/episode image
     // shows during the gap before the next dialogue appears.
-    currentAudio.onended = function() { setMedia(d, true); setTimeout(playNext, POST_AUDIO_GAP_MS); };
-    currentAudio.onerror = function() { setMedia(d, true); setTimeout(playNext, 2000); };
-    currentAudio.play().catch(function() { setMedia(d, true); setTimeout(playNext, 2000); });
+    currentAudio.onended = function() { setMedia(d, true); clearCurrentDialog(); setTimeout(playNext, POST_AUDIO_GAP_MS); };
+    currentAudio.onerror = function() { setMedia(d, true); clearCurrentDialog(); setTimeout(playNext, 2000); };
+    currentAudio.play().catch(function() { setMedia(d, true); clearCurrentDialog(); setTimeout(playNext, 2000); });
   } else {
-    setTimeout(playNext, ${this.options.pauseMs});
+    if (FULLSCREEN) setTimeout(function() { clearCurrentDialog(); playNext(); }, ${this.options.pauseMs});
+    else setTimeout(playNext, ${this.options.pauseMs});
   }
 }
 
@@ -395,8 +414,12 @@ function initScrubberMode(timeline) {
     // section image (and to the episode image once the section changes).
     if (rendered > 0) {
       var ai = rendered - 1;
-      var endMs = timeline[ai] + (dialogues[ai].audioDurationSec || 0) * 1000;
-      setMedia(dialogues[ai], nowMs > endMs);
+      var durationMs = (dialogues[ai].audioDurationSec || 0) * 1000;
+      var endMs = durationMs > 0 ? timeline[ai] + durationMs
+        : (ai + 1 < timeline.length ? timeline[ai + 1] : timeline[ai] + ${this.options.pauseMs});
+      var ended = nowMs >= endMs;
+      setMedia(dialogues[ai], ended);
+      if (ended) clearCurrentDialog();
     } else {
       setMedia(null, false);
     }
@@ -407,7 +430,7 @@ function initScrubberMode(timeline) {
 }
 
 window.addEventListener('load', function() {
-  // Show the episode default image on the right pane before any dialogue.
+  // Show the episode default media before any dialogue.
   setMedia(null, false);
   // Vertical layout: show the episode image as a banner right away.
   showEpisodeBanner();
@@ -497,6 +520,45 @@ window.addEventListener('load', function() {
       ? `<div id="pc-media-label">${this.escapeHTML(this.bottomLabel)}</div>`
       : "";
 
+    const fullscreenStyle = this.isFullscreen
+      ? `
+#pc-stage { position: relative; overflow: hidden; }
+#pc-media-pane {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; background: #000;
+}
+#pc-media-img, #pc-media-video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+#pc-subtitle-pane {
+  position: absolute; left: 8%; right: 8%; bottom: 30px; z-index: 1;
+  max-height: calc(100% - 60px); pointer-events: none;
+}
+#pc-subtitle-pane #pc-content { width: 100%; height: auto; }
+#pc-subtitle-pane .device { height: auto; background: transparent; }
+#pc-subtitle-pane .kk-header, #pc-subtitle-pane .im-header,
+#pc-subtitle-pane .wc-header, #pc-subtitle-pane .kk-footer,
+#pc-subtitle-pane .im-footer, #pc-subtitle-pane .wc-footer,
+#pc-subtitle-pane .date-divider, #pc-subtitle-pane .time-divider,
+#pc-subtitle-pane .section-divider { display: none; }
+#pc-subtitle-pane #chat-body {
+  display: block; flex: none; width: 100%; max-height: 100%;
+  padding: 0; overflow: visible; background: transparent;
+}
+#pc-subtitle-pane .msg-row,
+#pc-subtitle-pane .msg-row.right {
+  justify-content: center; margin: 0;
+  filter: drop-shadow(0 2px 9px rgba(0, 0, 0, 0.65));
+}
+#pc-subtitle-pane .msg-col { max-width: 78%; }
+#pc-subtitle-pane .time-stamp { display: none; }
+#pc-subtitle-pane .sender-name, #pc-subtitle-pane .sender-label,
+#pc-subtitle-pane .sender-name.right, #pc-subtitle-pane .sender-label.right {
+  color: #fff; text-shadow: 0 1px 3px #000;
+}
+`
+      : "";
+
     const stageInner = this.isHorizontal
       ? `<div id="pc-chat-pane">
 <div id="pc-content">
@@ -508,6 +570,12 @@ ${mediaLabel}
 <img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
 <video id="pc-media-video" style="display:none" muted playsinline loop></video>
 </div>`
+      : this.isFullscreen
+      ? `<div id="pc-media-pane">
+<img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
+<video id="pc-media-video" style="display:none" muted playsinline loop></video>
+</div>
+<div id="pc-subtitle-pane"><div id="pc-content">${body}</div></div>`
       : `<div id="pc-content">
 ${body}
 </div>
@@ -537,6 +605,7 @@ html, body {
   border-top: 1px solid rgba(128, 128, 128, 0.35);
 }
 ${style}
+${fullscreenStyle}
 </style>
 </head>
 <body>
