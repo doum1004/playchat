@@ -2,6 +2,17 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.4.0 — 2026-10-11
+
+### Changes
+
+- feat: add fullscreen dialogue overlay (5106b03)
+
+**Full diff:** [v1.3.0...v1.4.0](https://github.com/doum1004/playchat/compare/v1.3.0...v1.4.0)
+
+---
+
+
 ## v1.3.0 — 2026-10-06
 
 ### Changes
