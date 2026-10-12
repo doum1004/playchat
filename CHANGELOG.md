@@ -2,6 +2,18 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.5.0 — 2026-10-12
+
+### Changes
+
+- feat: show section titles and left avatars in fullscreen (67a8f1d)
+- fix: refine single-host fullscreen bubbles (45348b6)
+
+**Full diff:** [v1.4.0...v1.5.0](https://github.com/doum1004/playchat/compare/v1.4.0...v1.5.0)
+
+---
+
+
 ## v1.4.0 — 2026-10-11
 
 ### Changes
