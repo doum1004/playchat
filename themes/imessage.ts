@@ -231,7 +231,7 @@ function avatarHTML(d) {
 }
 
 function appendMsg(d) {
-  var side = d.speaker === ME ? 'right' : 'left';
+  var side = FULLSCREEN ? 'left' : (d.speaker === ME ? 'right' : 'left');
   var t = getTime(d.audioDurationSec);
 
   if (d.section !== lastSection) {

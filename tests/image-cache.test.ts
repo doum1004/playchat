@@ -25,6 +25,7 @@ function makeDialogue(id: number, imageRaw: string, sectionImageRaw = ""): FlatD
     audio: "",
     audioRaw: "",
     section: "section",
+    sectionTitle: "Section",
     audioDurationSec: 0,
     image: imageRaw,
     imageRaw,

@@ -152,6 +152,15 @@ html, body {
 #pc-media-img, #pc-media-video {
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
+#pc-section-title {
+  position: absolute; top: 20px; left: 24px; z-index: 2;
+  max-width: calc(100% - 48px);
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(0, 0, 0, 0.62); color: #fff;
+  font-size: 20px; font-weight: 600; line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+#pc-section-title:empty { display: none; }
 #pc-subtitle-pane {
   position: absolute; left: 8%; right: 8%; bottom: 30px; z-index: 1;
   max-height: calc(100% - 60px); pointer-events: none;
@@ -187,6 +196,7 @@ html, body {
 <img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
 <video id="pc-media-video" style="display:none" muted playsinline loop></video>
 </div>
+<div id="pc-section-title">시작</div>
 <div id="pc-subtitle-pane"><div id="pc-content">
 <div class="device">
   <div class="kk-header">
@@ -239,7 +249,7 @@ function avatarHTML(d) {
 }
 
 function appendMsg(d) {
-  var side = d.speaker === ME ? 'right' : 'left';
+  var side = FULLSCREEN ? 'left' : (d.speaker === ME ? 'right' : 'left');
   var t = getTime(d.audioDurationSec);
 
   if (d.section !== lastSection) {
@@ -273,7 +283,7 @@ function appendMsg(d) {
 }
 
 
-const dialogues = [{"speaker":"host_1","name":"민수","text":"오늘의 이야기를 시작해 볼게요.","annotation":"Let's begin today's story.","audio":"","audioRaw":"","section":"시작","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0},{"speaker":"host_1","name":"민수","text":"다음 장면으로 넘어갑니다.","annotation":"Moving to the next scene.","audio":"","audioRaw":"","section":"시작","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0}];
+const dialogues = [{"speaker":"host_1","name":"민수","text":"오늘의 이야기를 시작해 볼게요.","annotation":"Let's begin today's story.","audio":"","audioRaw":"","section":"시작","sectionTitle":"시작","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0},{"speaker":"host_1","name":"민수","text":"다음 장면으로 넘어갑니다.","annotation":"Moving to the next scene.","audio":"","audioRaw":"","section":"시작","sectionTitle":"시작","audioDurationSec":0,"image":"","imageRaw":"","sectionImage":"","sectionImageRaw":"","timeStartSec":0,"timeEndSec":0}];
 const TOTAL = dialogues.length;
 let idx = 0, isPlaying = false, currentAudio = null;
 let lastSection = "시작";
@@ -341,7 +351,12 @@ function setMedia(d, ended) {
 
 // Render a dialogue bubble and show its media (dialogue still active).
 function showMsg(d) {
-  if (FULLSCREEN) document.getElementById('chat-body').replaceChildren();
+  if (FULLSCREEN) {
+    document.getElementById('chat-body').replaceChildren();
+    if (d.sectionTitle !== undefined) {
+      document.getElementById('pc-section-title').textContent = d.sectionTitle;
+    }
+  }
   appendMsg(d);
   setMedia(d, false);
 }

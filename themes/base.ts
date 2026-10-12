@@ -104,6 +104,10 @@ export abstract class BaseTheme {
     return this.episode.sections[0]?.corner_name ?? "";
   }
 
+  protected get firstSectionTitle(): string {
+    return this.episode.sections[0]?.section_title ?? "";
+  }
+
   protected get hostCount(): number {
     return this.episode.hosts.length;
   }
@@ -237,7 +241,12 @@ function setMedia(d, ended) {
 
 // Render a dialogue bubble and show its media (dialogue still active).
 function showMsg(d) {
-  if (FULLSCREEN) document.getElementById('chat-body').replaceChildren();
+  if (FULLSCREEN) {
+    document.getElementById('chat-body').replaceChildren();
+    if (d.sectionTitle !== undefined) {
+      document.getElementById('pc-section-title').textContent = d.sectionTitle;
+    }
+  }
   appendMsg(d);
   setMedia(d, false);
 }
@@ -530,6 +539,15 @@ window.addEventListener('load', function() {
 #pc-media-img, #pc-media-video {
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
+#pc-section-title {
+  position: absolute; top: 20px; left: 24px; z-index: 2;
+  max-width: calc(100% - 48px);
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(0, 0, 0, 0.62); color: #fff;
+  font-size: 20px; font-weight: 600; line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+#pc-section-title:empty { display: none; }
 #pc-subtitle-pane {
   position: absolute; left: 8%; right: 8%; bottom: 30px; z-index: 1;
   max-height: calc(100% - 60px); pointer-events: none;
@@ -575,6 +593,7 @@ ${mediaLabel}
 <img id="pc-media-img" style="display:none" onload="window.__imgLoaded__ && window.__imgLoaded__()" onerror="this.style.display='none'" />
 <video id="pc-media-video" style="display:none" muted playsinline loop></video>
 </div>
+<div id="pc-section-title">${this.escapeHTML(this.firstSectionTitle)}</div>
 <div id="pc-subtitle-pane"><div id="pc-content">${body}</div></div>`
       : `<div id="pc-content">
 ${body}

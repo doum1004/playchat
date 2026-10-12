@@ -172,9 +172,9 @@ captured at 2× scale).
 | WeChat | `wechat` | 1080×1920 (9:16) |
 
 With two or more hosts, the first host in `episode.hosts` is treated as "me"
-and renders on the right; other hosts render on the left. With one host, its
-avatar sits to the left of the bubble. In fullscreen, that avatar and bubble
-stay centered together near the bottom like a subtitle.
+and renders on the right in vertical and horizontal chat layouts; other hosts
+render on the left. In fullscreen, every host's avatar sits to the left of its
+bubble, and the pair stays centered near the bottom like a subtitle.
 By default every message shows an avatar circle and sender name. Pass
 `--no-avatar` to hide them.
 
@@ -193,6 +193,8 @@ Use `--orientation` to choose the frame shape:
   theme's chat bubble style, including its annotation, avatar, and sender name
   when enabled. Previous bubbles disappear, and the bubble clears when its
   audio ends. A dialogue without audio stays visible for `--pause` milliseconds.
+  The current section's `section_title` stays at the top left, updating when
+  playback reaches another section.
 
 ### Media (horizontal and fullscreen)
 

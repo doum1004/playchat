@@ -116,6 +116,8 @@ export interface FlatDialogue {
   /** Original audio value before normalization (local path, URL, or empty) */
   audioRaw: string;
   section: string;
+  /** Display title of the containing section. */
+  sectionTitle?: string;
   /** Duration of the audio clip in seconds (0 if no audio). Populated by CLI before rendering. */
   audioDurationSec: number;
   /** Normalized image URI (browser-usable). Empty string if no image. */
@@ -163,6 +165,7 @@ export function flattenDialogues(episode: PodcastEpisode, baseDir?: string): Fla
         audio: normalizeAudioPath(d.audio, baseDir),
         audioRaw: d.audio,
         section: section.corner_name,
+        sectionTitle: section.section_title,
         audioDurationSec: 0,
         image: normalizeAudioPath(imageRaw, baseDir),
         imageRaw,

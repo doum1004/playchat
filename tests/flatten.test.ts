@@ -23,6 +23,11 @@ describe("flattenDialogues", () => {
     expect(flat[3].section).toBe("[실전 영어 상황극]");
   });
 
+  it("propagates section_title separately from corner_name", () => {
+    expect(flat[0].sectionTitle).toBe(fixture.sections[0].section_title);
+    expect(flat[3].sectionTitle).toBe(fixture.sections[1].section_title);
+  });
+
   it("preserves speaker and name fields", () => {
     expect(flat[0].speaker).toBe("host_1");
     expect(flat[0].name).toBe("민수");

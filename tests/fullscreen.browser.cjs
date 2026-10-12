@@ -9,7 +9,7 @@ const { pathToFileURL } = require('url');
       const page = await browser.newPage();
       try {
         await page.setViewport({ width: 960, height: 540 });
-        await page.evaluateOnNewDocument('window.__TIMELINE__ = [0, 3000, 6000]');
+        await page.evaluateOnNewDocument('window.__TIMELINE__ = [0, 3000, 6000, 9000]');
         await page.goto(pathToFileURL(htmlPath).href + '?autoplay=0');
         const states = [];
         for (const ms of [0, 1100, 3000, 6000, 9000]) {
@@ -20,6 +20,8 @@ const { pathToFileURL } = require('url');
             annotation: document.querySelector('.msg-row .bubble-annotation')?.textContent,
             mediaSrc: document.getElementById('pc-media-img')?.getAttribute('src'),
             mediaRect: document.getElementById('pc-media-pane')?.getBoundingClientRect().toJSON(),
+            sectionTitle: document.getElementById('pc-section-title')?.textContent,
+            sectionTitleRect: document.getElementById('pc-section-title')?.getBoundingClientRect().toJSON(),
             bubbleBottom: document.querySelector('.msg-row')?.getBoundingClientRect().bottom,
             bubbleLeft: document.querySelector('.msg-row .bubble')?.getBoundingClientRect().left,
             bubbleRight: document.querySelector('.msg-row .bubble')?.getBoundingClientRect().right,

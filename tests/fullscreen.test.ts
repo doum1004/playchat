@@ -34,6 +34,8 @@ it("shows only the active themed bubble over full-frame media", () => {
     })) as Array<Array<{
       texts: string[]; annotation?: string; mediaSrc?: string;
       mediaRect?: { width: number; height: number }; bubbleBottom?: number;
+      sectionTitle?: string; sectionTitleRect?: { x: number; y: number };
+      rowClass?: string; avatarRight?: number; bubbleLeft?: number;
     }>>;
 
     expect(states).toHaveLength(htmlPaths.length);
@@ -43,12 +45,56 @@ it("shows only the active themed bubble over full-frame media", () => {
       expect(first.mediaSrc).toBe(dialogueImage);
       expect(first.mediaRect).toMatchObject({ width: 960, height: 540 });
       expect(first.bubbleBottom).toBeGreaterThan(450);
+      expect(first.sectionTitle).toBe(episode.sections[0].section_title);
+      expect(first.sectionTitleRect).toMatchObject({ x: 24, y: 20 });
       expect(gap.texts).toEqual([]);
       expect(gap.mediaSrc).toBe(sectionImage);
+      expect(gap.sectionTitle).toBe(first.sectionTitle);
       expect(second.texts).toEqual([episode.sections[0].dialogues[1].text]);
       expect(second.mediaSrc).toBe(sectionImage);
       expect(last.texts).toEqual([episode.sections[0].dialogues[2].text]);
       expect(end.texts).toEqual([]);
+      for (const state of [first, second, last]) {
+        expect(state.rowClass).toBe("msg-row");
+        expect(state.avatarRight).toBeLessThan(state.bubbleLeft!);
+      }
+    }
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}, 30_000);
+
+it("updates the fullscreen section title when playback enters a new section", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "playchat-sections-"));
+  try {
+    const episode: PodcastEpisode = JSON.parse(fs.readFileSync(fixturePath, "utf-8"));
+    const firstSection = episode.sections[0];
+    firstSection.section_title = "Opening title";
+    firstSection.corner_name = "[Opening corner]";
+    episode.sections.push({
+      ...firstSection,
+      section_id: 2,
+      section_title: "Next section title",
+      corner_name: "[Next corner]",
+      dialogues: [{ ...firstSection.dialogues[0], id: 4, text: "Next section line" }],
+    });
+    const dialogues = flattenDialogues(episode);
+    const htmlPaths = listThemes().map((themeId) => {
+      const htmlPath = path.join(tempDir, `${themeId}.html`);
+      fs.writeFileSync(htmlPath, getTheme(themeId, episode, dialogues, { orientation: "fullscreen" }).render());
+      return htmlPath;
+    });
+
+    const browserScript = path.resolve(__dirname, "fullscreen.browser.cjs");
+    const states = JSON.parse(execFileSync(process.execPath, [browserScript, ...htmlPaths], {
+      encoding: "utf-8", timeout: 30_000,
+    })) as Array<Array<{ sectionTitle: string; texts: string[] }>>;
+
+    for (const [first, gap, , , nextSection] of states) {
+      expect(first.sectionTitle).toBe("Opening title");
+      expect(gap.sectionTitle).toBe("Opening title");
+      expect(nextSection.sectionTitle).toBe("Next section title");
+      expect(nextSection.texts).toEqual(["Next section line"]);
     }
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
