@@ -105,17 +105,9 @@ export class KakaoTalkTheme extends BaseTheme {
   width: 48px;
   height: 48px;
   border-radius: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
   overflow: hidden;
-  font-size: 18px;
-  font-weight: 500;
-  line-height: 1;        /* ← key fix */
-  text-align: center;
 }
-.avatar-letter { position: relative; z-index: 1; }
 .avatar-image {
   position: absolute;
   inset: 0;
@@ -202,20 +194,15 @@ export class KakaoTalkTheme extends BaseTheme {
   // ── JS ──
 
   private get hostMapJSON(): string {
-    const colors = ["#f9e000", "#ff7043", "#66bb6a", "#42a5f5", "#ab47bc"];
-    const textColors = ["#3c2e00", "#fff", "#fff", "#fff", "#fff"];
     const bubbleBgs = this.isDark
       ? ["#f9e000", "#3a3a3c", "#2e4b34", "#2c3e52", "#3f2e52"]
       : ["#f9e000", "#fff", "#d4f0d4", "#d4e4f7", "#ead4f7"];
     const bubbleFgs = this.isDark
       ? ["#1a1a1a", "#f2f2f2", "#f2f2f2", "#f2f2f2", "#f2f2f2"]
       : ["#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a", "#1a1a1a"];
-    const map: Record<string, { letter: string; bg: string; fg: string; image: string; bubbleBg: string; bubbleFg: string }> = {};
+    const map: Record<string, { image: string; bubbleBg: string; bubbleFg: string }> = {};
     this.episode.hosts.forEach((h, i) => {
       map[h.id] = {
-        letter: h.name.charAt(0),
-        bg: colors[i % colors.length],
-        fg: textColors[i % textColors.length],
         image: h.image ? normalizeAudioPath(h.image) : "",
         bubbleBg: bubbleBgs[i % bubbleBgs.length],
         bubbleFg: bubbleFgs[i % bubbleFgs.length],
@@ -248,10 +235,9 @@ function getTime(audioDurationSec) {
 }
 
 function avatarHTML(d) {
-  var info = HOST_MAP[d.speaker] || { letter: d.name.charAt(0), bg: '#999', fg: '#fff', image: '' };
-  var letter = '<span class="avatar-letter">' + info.letter + '</span>';
-  var img = info.image ? '<img class="avatar-image" src="' + info.image + '" onerror="this.remove()" />' : '';
-  return '<div class="avatar-col"><div class="avatar" style="background:' + info.bg + ';color:' + info.fg + '">' + letter + img + '</div></div>';
+  var info = HOST_MAP[d.speaker];
+  if (!info || !info.image) return '';
+  return '<div class="avatar-col"><div class="avatar"><img class="avatar-image" src="' + info.image + '" onerror="this.parentElement.parentElement.remove()" /></div></div>';
 }
 
 function appendMsg(d) {

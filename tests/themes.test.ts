@@ -223,16 +223,6 @@ describe("host avatar images", () => {
     }
   });
 
-  it("renders avatar image element and initials fallback markup", () => {
-    for (const themeId of listThemes()) {
-      const theme = getTheme(themeId, fixture, dialogues);
-      const html = theme.render();
-      expect(html).toContain("avatar-image");
-      expect(html).toContain("avatar-letter");
-      expect(html).toContain('onerror="this.remove()"');
-    }
-  });
-
   it("supports hosts without image by serializing empty image value", () => {
     const noImageEpisode: PodcastEpisode = {
       ...fixture,

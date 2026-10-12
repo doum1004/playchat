@@ -57,8 +57,40 @@ it("shows only the active themed bubble over full-frame media", () => {
       expect(end.texts).toEqual([]);
       for (const state of [first, second, last]) {
         expect(state.rowClass).toBe("msg-row");
-        expect(state.avatarRight).toBeLessThan(state.bubbleLeft!);
-        expect(Math.abs(state.avatarTop! - state.bubbleTop!)).toBeLessThan(1);
+        expect(state.avatarRight).toBeUndefined();
+        expect(state.avatarTop).toBeUndefined();
+        expect(state.senderBottom).toBeLessThan(state.bubbleTop!);
+      }
+    }
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}, 30_000);
+
+it("removes an invalid host avatar without hiding the sender", () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "playchat-invalid-avatar-"));
+  try {
+    const episode: PodcastEpisode = JSON.parse(fs.readFileSync(fixturePath, "utf-8"));
+    episode.hosts = episode.hosts.map((host) => ({
+      ...host,
+      image: pathToFileURL(path.join(tempDir, "missing.png")).href,
+      useSystemAvatar: false,
+    }));
+    const dialogues = flattenDialogues(episode);
+    const htmlPaths = listThemes().map((themeId) => {
+      const htmlPath = path.join(tempDir, `${themeId}.html`);
+      fs.writeFileSync(htmlPath, getTheme(themeId, episode, dialogues, { orientation: "fullscreen" }).render());
+      return htmlPath;
+    });
+
+    const browserScript = path.resolve(__dirname, "fullscreen.browser.cjs");
+    const states = JSON.parse(execFileSync(process.execPath, [browserScript, ...htmlPaths], {
+      encoding: "utf-8", timeout: 30_000,
+    })) as Array<Array<{ avatarRight?: number; senderBottom?: number; bubbleTop?: number }>>;
+
+    for (const [first, , second] of states) {
+      for (const state of [first, second]) {
+        expect(state.avatarRight).toBeUndefined();
         expect(state.senderBottom).toBeLessThan(state.bubbleTop!);
       }
     }

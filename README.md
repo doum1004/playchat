@@ -315,9 +315,10 @@ node dist/cli.js fixtures/example5/episode.json --theme wechat --color light --p
 | iMessage | [Open](./fixtures/example5/imessage/output.html) | [View](./fixtures/example5/imessage/translation_preview.png) |
 | WeChat | [Open](./fixtures/example5/wechat/output.html) | [View](./fixtures/example5/wechat/translation_preview.png) |
 
-`hosts[i].image` is optional. When present, the value is used as the avatar
-image in chat themes; when omitted or if loading fails, the theme falls back to
-the host's initial letter.
+`hosts[i].image` is optional. A system profile photo takes priority when one is
+available and `useSystemAvatar` is not `false`; otherwise the theme uses the
+host's `image`. If neither is available or the image fails to load, no avatar
+is shown.
 
 The top-level `image`, `sections[].image`, and `dialogues[].image` fields are
 optional and used in `horizontal` and `fullscreen` modes, where they populate
