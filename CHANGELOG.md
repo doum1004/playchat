@@ -2,6 +2,19 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.5.2 — 2026-10-12
+
+> Hide missing or invalid host avatars while keeping sender names visible.
+
+### Changes
+
+- fix: hide missing or invalid host avatars (97c2612)
+
+**Full diff:** [v1.5.1...v1.5.2](https://github.com/doum1004/playchat/compare/v1.5.1...v1.5.2)
+
+---
+
+
 ## v1.5.1 — 2026-10-12
 
 ### Changes
