@@ -1,6 +1,6 @@
 {
   "name": "playchat",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Multi-theme podcast chat renderer with video recording",
   "main": "dist/cli.js",
   "bin": {

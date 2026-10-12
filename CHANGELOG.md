@@ -2,6 +2,17 @@
 
 <!-- New entries are prepended automatically by the publish workflow -->
 
+## v1.5.1 — 2026-10-12
+
+### Changes
+
+- fix: improve fullscreen host labels and avatar alignment (9ff29c5)
+
+**Full diff:** [v1.5.0...v1.5.1](https://github.com/doum1004/playchat/compare/v1.5.0...v1.5.1)
+
+---
+
+
 ## v1.5.0 — 2026-10-12
 
 ### Changes
