@@ -185,7 +185,12 @@ html, body {
 #pc-subtitle-pane .time-stamp { display: none; }
 #pc-subtitle-pane .sender-name, #pc-subtitle-pane .sender-label,
 #pc-subtitle-pane .sender-name.right, #pc-subtitle-pane .sender-label.right {
-  color: #fff; text-shadow: 0 1px 3px #000;
+  align-self: flex-start; width: max-content; max-width: 100%;
+  margin-bottom: 6px; padding: 4px 9px;
+  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 17, 26, 0.82); color: #fff;
+  font-size: 16px; font-weight: 600; line-height: 1.2;
+  overflow-wrap: anywhere; text-shadow: none;
 }
 
 </style>
@@ -358,6 +363,15 @@ function showMsg(d) {
     }
   }
   appendMsg(d);
+  if (FULLSCREEN) {
+    var row = document.getElementById('chat-body').querySelector('.msg-row');
+    var avatar = row && row.querySelector('.avatar-col');
+    var bubble = row && row.querySelector('.bubble');
+    if (avatar && bubble) {
+      avatar.style.marginTop = Math.max(0,
+        bubble.getBoundingClientRect().top - avatar.getBoundingClientRect().top) + 'px';
+    }
+  }
   setMedia(d, false);
 }
 

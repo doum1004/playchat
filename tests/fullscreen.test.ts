@@ -36,6 +36,7 @@ it("shows only the active themed bubble over full-frame media", () => {
       mediaRect?: { width: number; height: number }; bubbleBottom?: number;
       sectionTitle?: string; sectionTitleRect?: { x: number; y: number };
       rowClass?: string; avatarRight?: number; bubbleLeft?: number;
+      avatarTop?: number; bubbleTop?: number; senderBottom?: number;
     }>>;
 
     expect(states).toHaveLength(htmlPaths.length);
@@ -57,6 +58,8 @@ it("shows only the active themed bubble over full-frame media", () => {
       for (const state of [first, second, last]) {
         expect(state.rowClass).toBe("msg-row");
         expect(state.avatarRight).toBeLessThan(state.bubbleLeft!);
+        expect(Math.abs(state.avatarTop! - state.bubbleTop!)).toBeLessThan(1);
+        expect(state.senderBottom).toBeLessThan(state.bubbleTop!);
       }
     }
   } finally {
@@ -123,6 +126,7 @@ it("centers a sole host's fullscreen bubble with its avatar on the left", () => 
     })) as Array<Array<{
       bubbleLeft?: number; bubbleRight?: number; avatarLeft?: number;
       avatarRight?: number; avatarImageLoaded?: boolean;
+      avatarTop?: number; bubbleTop?: number;
       rowClass?: string; texts: string[];
     }>>;
 
@@ -130,6 +134,7 @@ it("centers a sole host's fullscreen bubble with its avatar on the left", () => 
       for (const state of [first, second]) {
         expect(state.rowClass).toBe("msg-row");
         expect(state.avatarRight).toBeLessThan(state.bubbleLeft!);
+        expect(Math.abs(state.avatarTop! - state.bubbleTop!)).toBeLessThan(1);
         expect(state.avatarImageLoaded).toBe(true);
         const groupCenter = (state.avatarLeft! + state.bubbleRight!) / 2;
         expect(groupCenter).toBeGreaterThan(465);

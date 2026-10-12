@@ -25,9 +25,12 @@ const { pathToFileURL } = require('url');
             bubbleBottom: document.querySelector('.msg-row')?.getBoundingClientRect().bottom,
             bubbleLeft: document.querySelector('.msg-row .bubble')?.getBoundingClientRect().left,
             bubbleRight: document.querySelector('.msg-row .bubble')?.getBoundingClientRect().right,
+            bubbleTop: document.querySelector('.msg-row .bubble')?.getBoundingClientRect().top,
             rowClass: document.querySelector('.msg-row')?.className,
             avatarLeft: document.querySelector('.msg-row .avatar')?.getBoundingClientRect().left,
             avatarRight: document.querySelector('.msg-row .avatar')?.getBoundingClientRect().right,
+            avatarTop: document.querySelector('.msg-row .avatar')?.getBoundingClientRect().top,
+            senderBottom: document.querySelector('.msg-row .sender-name, .msg-row .sender-label')?.getBoundingClientRect().bottom,
             avatarImageLoaded: (() => {
               const image = document.querySelector('.msg-row .avatar-image');
               return Boolean(image && image.complete && image.naturalWidth > 0);

@@ -174,7 +174,8 @@ captured at 2× scale).
 With two or more hosts, the first host in `episode.hosts` is treated as "me"
 and renders on the right in vertical and horizontal chat layouts; other hosts
 render on the left. In fullscreen, every host's avatar sits to the left of its
-bubble, and the pair stays centered near the bottom like a subtitle.
+bubble, aligned with the bubble's top edge; the host name sits above it. The
+pair stays centered near the bottom like a subtitle.
 By default every message shows an avatar circle and sender name. Pass
 `--no-avatar` to hide them.
 
@@ -194,7 +195,8 @@ Use `--orientation` to choose the frame shape:
   when enabled. Previous bubbles disappear, and the bubble clears when its
   audio ends. A dialogue without audio stays visible for `--pause` milliseconds.
   The current section's `section_title` stays at the top left, updating when
-  playback reaches another section.
+  playback reaches another section. Host names use dark labels for contrast
+  over images and video.
 
 ### Media (horizontal and fullscreen)
 
