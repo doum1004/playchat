@@ -1,0 +1,39 @@
+{
+  "name": "한 사람 대화 예제",
+  "episode_title": "Maximum fullscreen bubble width",
+  "episode_number": 6,
+  "topic": "Single host layout",
+  "subtitle": "One speaker's dialogue",
+  "summary": "한 명의 진행자는 아바타가 말풍선 왼쪽에 있고, 전체 화면에서는 함께 가운데에 표시됩니다.",
+  "hosts": [
+    {
+      "id": "host_1",
+      "name": "민수",
+      "gender": "male",
+      "role": "host",
+      "lang": "ko",
+      "voice_config": {
+        "voice_index": 1,
+        "pitch": 0,
+        "speed": 1
+      }
+    }
+  ],
+  "sections": [
+    {
+      "section_id": 1,
+      "section_title": "시작",
+      "section_type": "conversation",
+      "corner_name": "시작",
+      "dialogues": [
+        {
+          "id": 1,
+          "speaker": "host_1",
+          "name": "민수",
+          "text": "Tonight we follow the river through the city, past the old bridge and the lights on the water. This dialogue is intentionally long enough to reach the fullscreen subtitle bubble width, then wrap onto another line.",
+          "audio": ""
+        }
+      ]
+    }
+  ]
+}

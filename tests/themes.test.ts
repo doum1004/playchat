@@ -157,6 +157,25 @@ describe("dynamic ME host", () => {
       expect(html).toContain(`const ME = "host_X"`);
     }
   });
+
+  it("uses left-side bubble styling for a sole host in every theme and layout", () => {
+    const host = fixture.hosts[0];
+    const soloEpisode: PodcastEpisode = {
+      ...fixture,
+      hosts: [host],
+      sections: fixture.sections.map((section) => ({
+        ...section,
+        dialogues: section.dialogues.map((dialogue) => ({ ...dialogue, speaker: host.id, name: host.name })),
+      })),
+    };
+    const soloDialogues = flattenDialogues(soloEpisode);
+    for (const themeId of listThemes()) {
+      for (const orientation of ["vertical", "horizontal", "fullscreen"] as const) {
+        const html = getTheme(themeId, soloEpisode, soloDialogues, { orientation }).render();
+        expect(html).toContain("const ME = null;");
+      }
+    }
+  });
 });
 
 describe("showAvatar option", () => {

@@ -1,0 +1,44 @@
+{
+  "name": "한 사람 대화 예제",
+  "episode_title": "Single host captions",
+  "episode_number": 6,
+  "topic": "Single host layout",
+  "subtitle": "One speaker's dialogue",
+  "summary": "한 명의 진행자는 아바타가 말풍선 왼쪽에 있고, 전체 화면에서는 함께 가운데에 표시됩니다.",
+  "hosts": [
+    {
+      "id": "host_1",
+      "name": "민수",
+      "gender": "male",
+      "role": "host",
+      "lang": "ko",
+      "voice_config": { "voice_index": 1, "pitch": 0, "speed": 1 }
+    }
+  ],
+  "sections": [
+    {
+      "section_id": 1,
+      "section_title": "시작",
+      "section_type": "conversation",
+      "corner_name": "시작",
+      "dialogues": [
+        {
+          "id": 1,
+          "speaker": "host_1",
+          "name": "민수",
+          "text": "오늘의 이야기를 시작해 볼게요.",
+          "annotation": "Let's begin today's story.",
+          "audio": ""
+        },
+        {
+          "id": 2,
+          "speaker": "host_1",
+          "name": "민수",
+          "text": "다음 장면으로 넘어갑니다.",
+          "annotation": "Moving to the next scene.",
+          "audio": ""
+        }
+      ]
+    }
+  ]
+}

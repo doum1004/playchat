@@ -123,9 +123,9 @@ export abstract class BaseTheme {
       .replace(/\u2029/g, "\\u2029");
   }
 
-  /** The host id of the first host in the episode — treated as "me" (right side). */
-  protected get meHostId(): string {
-    return this.episode.hosts[0]?.id ?? "host_1";
+  /** Only multi-host episodes place the first host on the right. */
+  protected get meHostId(): string | null {
+    return this.hostCount > 1 ? this.episode.hosts[0].id : null;
   }
 
   protected get showAvatar(): boolean {
@@ -548,9 +548,9 @@ window.addEventListener('load', function() {
 #pc-subtitle-pane .msg-row,
 #pc-subtitle-pane .msg-row.right {
   justify-content: center; margin: 0;
-  filter: drop-shadow(0 2px 9px rgba(0, 0, 0, 0.65));
 }
 #pc-subtitle-pane .msg-col { max-width: 78%; }
+#pc-subtitle-pane .bubble.pop { animation: none; }
 #pc-subtitle-pane .time-stamp { display: none; }
 #pc-subtitle-pane .sender-name, #pc-subtitle-pane .sender-label,
 #pc-subtitle-pane .sender-name.right, #pc-subtitle-pane .sender-label.right {

@@ -171,9 +171,14 @@ captured at 2× scale).
 | iMessage | `imessage` | 1080×1920 (9:16) |
 | WeChat | `wechat` | 1080×1920 (9:16) |
 
-The first host in `episode.hosts` is treated as "me" and renders on the right
-side; all other hosts render on the left. By default every message shows an
-avatar circle and sender name. Pass `--no-avatar` to hide them.
+With two or more hosts, the first host in `episode.hosts` is treated as "me"
+and renders on the right; other hosts render on the left. With one host, its
+avatar sits to the left of the bubble. In fullscreen, that avatar and bubble
+stay centered together near the bottom like a subtitle.
+By default every message shows an avatar circle and sender name. Pass
+`--no-avatar` to hide them.
+
+See the [single-host fullscreen preview](fixtures/example5/single_host/preview.png).
 
 ## Orientation
 
